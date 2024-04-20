@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout</title>
+</head>
+<body>
+    <h2>Checkout</h2>
+    <!-- Display cart items and total here -->
+    <div id="cart-items">
+        <!-- Cart items will be dynamically added here -->
+    </div>
+    <p id="total">Total: $0.00</p>
+    <button id="clear-cart-btn">Clear Cart</button>
+    <button id="buy-now-btn">Buy Now</button>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        // AJAX request to fetch cart items and total
+        $.get('/user/cart/checkout', function(data) {
+            // Loop through each cart item and append it to the page
+            data.cart.forEach(function(item) {
+                $('#cart-items').append(`<div>
+                    <h3>${item.product.title}</h3>
+                    <p>${item.product.description}</p>
+                    <p>Price: ${item.product.price}</p>
+                    <p>Quantity: ${item.qty}</p>
+                </div>`);
+            });
+            // Update total
+            $('#total').text('Total: $' + data.total.toFixed(2));
+        });
+
+        // AJAX request to clear cart
+        $('#clear-cart-btn').click(function() {
+            $.get('/user/cart/clear', function() {
+                // Redirect to checkout page after clearing cart
+                window.location.href = '/user/cart/checkout';
+            });
+        });
+
+        // AJAX request to complete purchase
+        $('#buy-now-btn').click(function() {
+            $.get('/user/cart/buynow', function() {
+                // Redirect to home page or thank you page after completing purchase
+                window.location.href = '/';
+            });
+        });
+    </script>
+</body>
+</html>

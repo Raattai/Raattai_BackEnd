@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Details</title>
+</head>
+<body>
+    <h2>Product Details</h2>
+    <!-- Display product details here -->
+    <div id="product-details">
+        <h3 id="product-title">Product Title</h3>
+        <p id="product-description">Product Description</p>
+        <p id="product-price">Product Price</p>
+        <button id="add-to-cart-btn">Add to Cart</button>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        // AJAX request to add product to cart
+        $('#add-to-cart-btn').click(function() {
+            var productId = 'YOUR_PRODUCT_ID'; // Replace with actual product ID
+            $.get(`/user/cart/add-to-cart/${productId}`, function(data) {
+                // Redirect to cart page after adding product to cart
+                window.location.href = '/user/cart/checkout';
+            });
+        });
+    </script>
+</body>
+</html>

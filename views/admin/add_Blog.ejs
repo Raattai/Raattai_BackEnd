@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Blog</title>
+</head>
+<body>
+    <h2>Add Blog</h2>
+    <form action="/admin/blogs/add-blog" method="POST">
+        <label for="Blogtitle">Title:</label>
+        <input type="text" id="Blogtitle" name="Blogtitle" required><br><br>
+
+        <label for="slug">Slug:</label>
+        <input type="text" id="slug" name="slug" required><br><br>
+
+        <label for="content">Content:</label><br>
+        <textarea id="content" name="content" required></textarea><br><br>
+
+        <button type="submit">Add Blog</button>
+    </form>
+</body>
+</html>

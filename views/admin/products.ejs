@@ -1,0 +1,34 @@
+<!-- admin/products.ejs -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Products</title>
+</head>
+<body>
+    <h1>Admin Products Page</h1>
+
+    <!-- Display a message if there are no products -->
+    <% if (count === 0) { %>
+        <p>No products available.</p>
+    <% } else { %>
+        <!-- Display product count -->
+        <p>Total products: <%= count %></p>
+
+        <!-- Display product list -->
+        <ul>
+            <% products.forEach(product => { %>
+                <li><%= product.title %> - <%= product.price %></li>
+                <li><a href="/admin/products/edit-product/<%= product._id %>">Edit Product</a></li>
+                <li><a href="/admin/products/delete-product/<%= product._id %>">Delete Product</a></li>
+
+            <% }); %>
+        </ul>
+    <% } %>
+
+    <!-- Link to add a new product -->
+    <a href="/admin/products/add-product">Add Product</a>
+</body>
+</html>

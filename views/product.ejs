@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Details</title>
+</head>
+<body>
+    <h2>Product Details</h2>
+    <div id="product-details">
+        <!-- Product details will be dynamically added here -->
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $.get(`/products/${product}`, function(data) {
+                $('#product-details').html(`<h3>${data.p.title}</h3>
+                    <p>${data.p.description}</p>
+                    <p>Price: ${data.p.price}</p>
+                    <!-- Add more product details here as needed -->
+                `);
+            });
+        });
+    </script>
+</body>
+</html>

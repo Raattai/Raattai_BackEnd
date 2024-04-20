@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Blog</title>
+</head>
+<body>
+    <h2>Edit Blog</h2>
+    <form action="/admin/blogs/edit-Blog/{{id}}" method="POST">
+        <label for="Blogtitle">Title:</label>
+        <input type="text" id="Blogtitle" name="Blogtitle" value="{{Blogtitle}}" required><br><br>
+
+        <label for="slug">Slug:</label>
+        <input type="text" id="slug" name="slug" value="{{slug}}" required><br><br>
+
+        <label for="content">Content:</label><br>
+        <textarea id="content" name="content" required>{{content}}</textarea><br><br>
+
+        <button type="submit">Update Blog</button>
+    </form>
+</body>
+</html>
