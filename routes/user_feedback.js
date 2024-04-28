@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const Image = require('../models/Image');
+const Image = require('../models/feedback');
+var auth = require('../config/auth.js');
 var isUser = auth.isUser;
 
 // Create a new image
