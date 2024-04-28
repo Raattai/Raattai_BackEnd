@@ -11,9 +11,7 @@ var Blog = require('../models/blog.js'); // Assuming correct path and filename
 router.get('/', function(req, res) {
   Blog.find({}).sort({ sorting: 1 }).exec() // Remove the callback function from exec()
     .then(blogs => {
-      res.render('admin/Blogs', {
-        blogs: blogs
-      });
+      res.json({ blogs });
     })
     .catch(err => {
       console.error(err);

@@ -124,7 +124,7 @@ router.get('/edit-product/:_id', async function(req, res) {
       
         // If no error, proceed with rendering the view
         const galleryImages = files;
-        res.render('admin/edit_product', {
+        res.render('admin/edit_products', {
           title: product.title,
           errors: errors,
           desc: product.desc,
@@ -139,7 +139,7 @@ router.get('/edit-product/:_id', async function(req, res) {
       // Gallery directory does not exist, handle accordingly
       // For example, set a default value for galleryImages or display a message to the user
       const galleryImages = [];
-      res.render('admin/edit_product', {
+      res.render('admin/edit_products', {
         title: product.title,
         errors: errors,
         desc: product.desc,

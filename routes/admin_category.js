@@ -6,6 +6,17 @@ var auth = require('../config/auth');
 var isAdmin = auth.isAdmin;
 const Category = require('../models/category'); // Import the Category model
 
+router.get('/category', function(req, res) {
+  Category.find({}, function(err, categories) {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: 'Internal Server Error' });
+    }
+    res.json({ categories });
+  });
+});
+
+
 // Post add-category
 router.post('/add-category', [
   check('title', 'Title must not be empty').not().isEmpty()
