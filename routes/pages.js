@@ -18,7 +18,15 @@ router.get('/products', async (req, res) => {
       res.status(500).json({ message: error.message });
     }
   });
-  
+
+  router.get('/', async (req, res) => {
+    try {
+      res.send('<h1 style=\'text-align:center;\'>This landing page</h1>');
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   // Route to fetch all blogs
   router.get('/blogs', async (req, res) => {
     try {

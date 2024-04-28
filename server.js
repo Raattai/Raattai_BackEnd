@@ -70,6 +70,7 @@ app.use((req, res, next) => {
 const products = require('./routes/product');
 const cart = require('./routes/cart');
 const users = require('./routes/user');
+const pages = require('./routes/pages');
 const adminProducts = require('./routes/admin_products.js');
 const adminBlog = require('./routes/admin_blog.js');
 const adminCategories = require('./routes/admin_category.js');
@@ -84,6 +85,7 @@ app.use('/client', products);
 app.use('/user/cart', cart);
 app.use('/user', users);
 app.use('/feedback', feedback);
+app.use('/',pages);
 
 // Server start
 const port = 3000;
