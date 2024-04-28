@@ -7,7 +7,7 @@ var auth = require('../config/auth.js');
 var isUser = auth.isUser;
 //get all products
 
-router.get('/products', isUser,async function(req, res) {
+router.get('/products',async function(req, res) {
     try {
         const products = await Product.find(); // Find all products
 

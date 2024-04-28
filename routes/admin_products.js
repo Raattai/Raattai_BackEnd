@@ -15,7 +15,7 @@ const uploadGallery = require('../utils/gallery.js');
 // Get product index 
 
 
-router.get('/',isAdmin, async (req, res, next) => {
+router.get('/', async (req, res, next) => {
     try {
         const count = await Product.countDocuments({});
         const products = await Product.find({}).exec();
@@ -159,7 +159,7 @@ router.get('/edit-product/:_id', async function(req, res) {
 
 
 // Post edit-product
-router.post('/edit-product/:id',isAdmin, upload.single('image'), async (req, res) => {
+router.post('/edit-product/:id', upload.single('image'), async (req, res) => {
   try {
     const productId = req.params.id;
     const { title, desc, price } = req.body;
@@ -209,7 +209,7 @@ router.post('/edit-product/:id',isAdmin, upload.single('image'), async (req, res
 });
 
 // POST route to handle updating the product gallery
-router.post('/edit-product/:id/gallery',isAdmin, uploadGallery.array('gallery', 5), async (req, res) => {
+router.post('/edit-product/:id/gallery', uploadGallery.array('gallery', 5), async (req, res) => {
   try {
     const productId = req.params.id;
     const images = req.files; // Array of uploaded files
@@ -245,7 +245,7 @@ router.post('/edit-product/:id/gallery',isAdmin, uploadGallery.array('gallery', 
 });
 
 // POST route to delete an image
-router.post('/delete-image/:productId/:imageId',isAdmin, async (req, res) => {
+router.post('/delete-image/:productId/:imageId', async (req, res) => {
   const { productId, imageId } = req.params;
 
   try {
@@ -294,7 +294,7 @@ router.post('/delete-image/:productId/:imageId',isAdmin, async (req, res) => {
 
 
 // Delete Product and Associated Images
-router.get('/delete-product/:id',isAdmin, async function(req, res) {
+router.get('/delete-product/:id', async function(req, res) {
   try {
     const productId = req.params.id;
 

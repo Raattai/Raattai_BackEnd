@@ -8,7 +8,7 @@ var isAdmin = auth.isAdmin;
 // Get Blog model
 var Blog = require('../models/blog.js'); // Assuming correct path and filename
 
-router.get('/',isAdmin, function(req, res) {
+router.get('/', function(req, res) {
   Blog.find({}).sort({ sorting: 1 }).exec() // Remove the callback function from exec()
     .then(blogs => {
       res.render('admin/Blogs', {
@@ -22,7 +22,7 @@ router.get('/',isAdmin, function(req, res) {
 });
 
 // Get add Blog
-router.get('/add-blog',isAdmin, function(req, res) {
+router.get('/add-blog', function(req, res) {
   var Blogtitle = "";
   var slug = "";
   var content = "";
@@ -35,7 +35,7 @@ router.get('/add-blog',isAdmin, function(req, res) {
 });
 
 // Post add-Blog
-router.post('/add-blog',isAdmin, [
+router.post('/add-blog', [
   check('Blogtitle', 'BlogTitle must not be empty').not().isEmpty()
 ], function(req, res) {
   const errors = validationResult(req);
@@ -95,7 +95,7 @@ router.post('/add-blog',isAdmin, [
 
 
 //Post Recoder Blogs
-router.post('/reorder-Blogs',isAdmin, async function(req, res) {
+router.post('/reorder-Blogs', async function(req, res) {
   var ids = req.body['id[]'];
 
   try {
@@ -123,7 +123,7 @@ router.post('/reorder-Blogs',isAdmin, async function(req, res) {
 
 
 // Get edit Blog
-router.get('/edit-Blog/:slug',isAdmin, function(req, res) {
+router.get('/edit-Blog/:slug', function(req, res) {
   Blog.findOne({slug: req.params.slug})
     .then(blog => {
       if (!blog) {
@@ -146,7 +146,7 @@ router.get('/edit-Blog/:slug',isAdmin, function(req, res) {
 });
 
 // Post edit-Blog
-router.post('/edit-Blog/:slug',isAdmin, [
+router.post('/edit-Blog/:slug', [
   check('Blogtitle', 'BlogTitle must not be empty').not().isEmpty(),
   check('content', 'Content must not be empty').not().isEmpty(),
 ], function(req, res) {
@@ -211,7 +211,7 @@ router.post('/edit-Blog/:slug',isAdmin, [
 
 
 // Delete Blog
-router.get('/delete-Blog/:id', isAdmin,function(req, res) {
+router.get('/delete-Blog/:id', function(req, res) {
   Blog.findOneAndDelete({ _id: req.params.id })
     .exec()
     .then(deletedBlog => {
