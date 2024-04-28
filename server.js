@@ -71,11 +71,19 @@ const products = require('./routes/product');
 const cart = require('./routes/cart');
 const users = require('./routes/user');
 const adminProducts = require('./routes/admin_products.js');
+const adminBlog = require('./routes/admin_blog.js');
+const adminCategories = require('./routes/admin_category.js');
+const adminService = require('./routes/admin_service.js');
+const feedback = require('./routes/user_feedback.js');
 
 app.use('/admin/products', adminProducts);
+app.use('/admin/categories',adminCategories);
+app.use('/admin/service',adminService);
+app.use('/admin/blog', adminBlog);
 app.use('/client', products);
 app.use('/user/cart', cart);
 app.use('/user', users);
+app.use('/feedback', feedback);
 
 // Server start
 const port = 3000;

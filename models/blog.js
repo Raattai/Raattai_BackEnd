@@ -2,6 +2,7 @@ var mongoose = require('mongoose');
 
 // Blog schema
 var BlogSchema = mongoose.Schema({
+
     BlogTitle: {
         type: String,
         required: true
@@ -24,6 +25,7 @@ var BlogSchema = mongoose.Schema({
         type: String,
         required: true
     }
+    
 });
 
 const Blog = mongoose.model('Blog', BlogSchema);

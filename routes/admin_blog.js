@@ -6,7 +6,7 @@ var auth = require('../config/auth');
 var isAdmin = auth.isAdmin;
 
 // Get Blog model
-var Blog = require('../models/blogs.js'); // Assuming correct path and filename
+var Blog = require('../models/blog.js'); // Assuming correct path and filename
 
 router.get('/',isAdmin, function(req, res) {
   Blog.find({}).sort({ sorting: 1 }).exec() // Remove the callback function from exec()

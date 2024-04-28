@@ -22,24 +22,19 @@ router.post('/register', async function(req, res) {
     try {
         const { name, email, username, password, confirm_password } = req.body;
 
-        // Check if passwords match
         if (password !== confirm_password) {
             req.flash('error', 'Passwords do not match');
             return res.redirect('/user/register');
         }
 
-        // Check if username already exists in the database
         const existingUser = await User.findOne({ username: username });
         if (existingUser) {
             req.flash('error', 'Username already exists, choose another');
             return res.redirect('/user/register');
         }
-
-        // Hash the password
         const salt = await bcrypt.genSalt(10);
         const hash = await bcrypt.hash(password, salt);
 
-        // Create a new user
         const newUser = new User({
             name: name,
             email: email,
