@@ -54,11 +54,8 @@ app.use((req, res, next) => {
 });
 
 // CORS middleware
-const corsOptions = {
-  origin: 'http://localhost:3000', // Allow requests from this origin
-  optionsSuccessStatus: 200 // Some legacy browsers (IE11, various SmartTVs) choke on 204
-};
-app.use(cors(corsOptions));
+app.use(cors());
+
 
 // Global variables middleware
 app.use((req, res, next) => {
