@@ -8,6 +8,7 @@ const flash = require('connect-flash');
 const passport = require('passport');
 const cors = require('cors');
 const expressMessages = require('express-messages');
+const Category = require('./models/category');
 
 mongoose.connect(config.database, { useNewUrlParser: true, useUnifiedTopology: true });
 const db = mongoose.connection;
@@ -55,6 +56,17 @@ app.use((req, res, next) => {
 
 // CORS middleware
 app.use(cors());
+app.use('/assets', express.static('web/assets'));
+//get category model
+
+Category.find({}).maxTimeMS(50000) // Adjust timeout as needed
+  .then(categories => {
+    app.locals.categories = categories;
+  })
+  .catch(err => {
+    console.error(err);
+    res.status(500).send('Internal Server Error');
+  });
 
 
 // Global variables middleware

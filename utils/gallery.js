@@ -5,7 +5,7 @@ const path = require('path');
 const galleryStorage = multer.diskStorage({
   destination: function (req, file, cb) {
     const productId = req.params.id || ''; 
-    const galleryDir = path.join('public', 'product_images', productId, 'gallery');
+    const galleryDir = path.join('web', 'assets','img', productId, 'gallery');
     cb(null, galleryDir);
   },
   filename: function (req, file, cb) {
