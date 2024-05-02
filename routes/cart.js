@@ -18,7 +18,7 @@ router.get('/add-to-cart/:product', async function(req, res) {
                 title: product.title,
                 qty: 1, 
                 price: parseFloat(product.price).toFixed(2),
-                image: '/product_images/' + product._id +'/' + product.image
+                image: product.image
             });
         }
 
@@ -26,7 +26,7 @@ router.get('/add-to-cart/:product', async function(req, res) {
 
         console.log(req.session.cart);
         req.flash('success', 'Product added to the cart');
-        res.redirect('back');
+        res.redirect('/checkout');
 
     } catch (error) {
         console.error('Error finding page:', error);
