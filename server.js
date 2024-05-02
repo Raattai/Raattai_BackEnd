@@ -28,6 +28,8 @@ app.use(bodyParser.json());
 
 // Static folder
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'web')));
+
 
 // Express session middleware
 app.set('trust proxy', 1);
@@ -82,7 +84,13 @@ app.use('/client', products);
 app.use('/user/cart', cart);
 app.use('/user', users);
 app.use('/feedback', feedback);
-app.use('/',pages);
+//app.use('/',pages);
+
+//renders the raattai front end
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, '/web/index.html')); 
+});
+
 
 // Server start
 const port = 3000;
