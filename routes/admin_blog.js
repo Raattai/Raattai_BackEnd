@@ -236,8 +236,5 @@ router.get('/delete-Blog/:id', function(req, res) {
 });
 
 
-
-
-
 // Exports
 module.exports = router;

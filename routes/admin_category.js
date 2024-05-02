@@ -7,7 +7,6 @@ var isAdmin = auth.isAdmin;
 const Category = require('../models/category'); // Import the Category model
 
 //Get Categories index
-
 router.get('/',function(req, res) {
   Category.find()
    .then(categories => {

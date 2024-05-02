@@ -13,6 +13,7 @@ var isAdmin = auth.isAdmin;
 var Product = require('../models/product.js'); 
 var Category = require('../models/category.js'); 
 const uploadGallery = require('../utils/gallery');
+var Stock = require('../models/stock.js'); 
 
 
 router.get('/', async (req, res, next) => {
@@ -71,8 +72,9 @@ function checkFileType(file, cb) {
 
 router.post('/add-product', upload.single('image'), async (req, res) => {
   try {
+    
     const { title, desc, price, category } = req.body;
-    const image = req.file ? req.file.filename : '';
+    const image = req.file ? '/assets/img/'+req.file.filename : '';
 
     // Check if any required field is missing and flash a message for each missing field
     if (!title) req.flash('danger', 'Title is required.');
@@ -95,9 +97,15 @@ router.post('/add-product', upload.single('image'), async (req, res) => {
       image: image,
       category: category 
     });
-
+    
     // Save the product to the database
     await newProduct.save();
+
+    const stock = new Stock({
+      items: [{ product: newProduct._id, quantity: 10 }]
+    });
+
+    await stock.save();
 
     // Create directories for product images
     const productId = newProduct._id;
@@ -257,7 +265,7 @@ router.post('/edit-product/:id/gallery', uploadGallery.array('gallery', 5), asyn
     // Save the filenames to the database
     images.forEach(async (image) => {
       const newGalleryImage = {
-        filename: image.filename
+        filename: `/assets/img/${productId}/gallery/`+image.filename
       };
       product.galleryImages.push(newGalleryImage);
     });

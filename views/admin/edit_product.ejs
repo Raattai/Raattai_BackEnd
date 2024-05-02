@@ -33,7 +33,7 @@
       <label for="category">Category</label>
       <select name="category" class="form-control">
         <% categories.forEach(function(cat) { %>
-          <option value="<%= cat.slug %>" <%= product.category === cat.slug ? 'selected' : '' %>><%= cat.title %></option>
+          <option value="<%= cat.slug %>" <%= product.category === cat.slug ? 'selected' : '' %><%= cat.name %></option>
         <% }); %>
       </select>
     </div>
@@ -47,7 +47,7 @@
       <label for="image">Image</label>
       <input type="file" class="form-control" name="image" id="img">
       <!-- Display existing image as preview -->
-      <img src="/assets/img/<%= product.image %>" id="imgPreview" alt="Existing Image">
+      <img src="<%= product.image %>" id="imgPreview" alt="Existing Image">
     </div>
     
     <button class="btn btn-primary" type="submit">Submit</button>
@@ -65,7 +65,7 @@
       <div class="gallery">
         <% product.galleryImages.forEach(function(image) { %>
           <div class="gallery-item" data-productid="<%= product.id %>" data-imageid="<%= image._id %>">
-            <img src="/assets/img/<%= product.id %>/gallery/<%= image.filename %>" alt="Gallery Image">
+            <img src="<%= image.filename %>" alt="Gallery Image">
             <button class="delete-image">Delete</button>
           </div>
         <% }); %>

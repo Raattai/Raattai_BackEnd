@@ -9,7 +9,7 @@ const passport = require('passport');
 const cors = require('cors');
 const expressMessages = require('express-messages');
 const Category = require('./models/category');
-
+const Stock = require('./models/stock');
 mongoose.connect(config.database, { useNewUrlParser: true, useUnifiedTopology: true });
 const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'connection error: '));
@@ -68,6 +68,18 @@ Category.find({}).maxTimeMS(50000) // Adjust timeout as needed
     res.status(500).send('Internal Server Error');
   });
 
+  //Stock
+
+Stock.find({}).maxTimeMS(50000) // Adjust timeout as needed
+.then(stocks => {
+  app.locals.stock = stocks;
+  console.log(stocks);
+})
+.catch(err => {
+  console.error(err);
+  res.status(500).send('Internal Server Error');
+});
+
 
 // Global variables middleware
 app.use((req, res, next) => {
@@ -85,8 +97,11 @@ const adminBlog = require('./routes/admin_blog.js');
 const adminCategories = require('./routes/admin_category.js');
 const adminService = require('./routes/admin_service.js');
 const feedback = require('./routes/user_feedback.js');
+const stock = require('./routes/admin_stock.js');
+
 
 app.use('/admin/products', adminProducts);
+app.use('/admin/stock', stock);
 app.use('/admin/categories',adminCategories);
 app.use('/admin/service',adminService);
 app.use('/admin/blog', adminBlog);

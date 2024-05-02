@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+
+<% if(typeof stock !== "undefined" && stock.length > 0) { %>
+    <h1 class="page-title">My Stock</h1>
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Image</th>
+                    <th>Title</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Actions</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% var total = 0 %>
+                <% stock.forEach(function(product) { %> 
+                    <% var subtot = parseFloat(product.product.price * product.quantity).toFixed(2) %>
+                    <% total += +subtot %>
+                    <tr>
+                        <td><img class="cpi img-fluid" src="<%= product.product.image %> " alt=""></td>
+                        <td><%= product.product.title %></td>
+                        <td><%= product.product.price %></td>
+                        <td><%= product.quantity %></td>
+                        <td>
+                            <a href="/user/stock/update/<%= product.product._id %>?action=add">+</a>&nbsp;
+                            <br>
+                            <a href="/user/stock/update/<%= product.product._id %>?action=remove">-</a>&nbsp;
+                            <br>
+                            <a href="/user/stock/update/<%= product.product._id %>?action=clear">Clear</a>
+                        </td>
+                        <td><%= subtot %></td>
+                    </tr>
+                <% }) %>
+                <tr>
+                    <td colspan="5" class="text-right"><b>Total:</b></td>
+                    <td><%= parseFloat(total).toFixed(2) %></td>
+                </tr>
+                <tr>
+                    <td colspan="6" class="text-right">
+                        <a class="btn btn-danger clearstock" href="/user/stock/clear">Clear Stock</a>
+                        <a class="btn btn-primary" href="#" id="buynow">Buy Now</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+<% } else { %>
+    <h3 class="text-center">Your Stock is Empty</h3>
+<% } %>
+
+<!-- PayPal form -->
+<form class="pp" action="https://www.sandbox.paypal.com/cgi-bin/webscr" method="post" style="display: none;">
+   <input type="hidden" name="cmd" value="_stock">
+   <input type="hidden" name="upload" value="1">
+   <input type="hidden" name="business" value="jultranet-facilitator@gmail.com">
+   <% var num = 0; %>
+   <% stock.forEach(function(p) { %>
+   <% num++; %>
+   <input type="hidden" name="item_name_<%= num %>" value="<%= p.product.title %>">
+   <input type="hidden" name="amount_<%= num %>" value="<%= p.product.price %>">
+   <input type="hidden" name="quantity_<%= num %>" value="<%= p.quantity %>">
+   <% }); %>
+   <input type="hidden" name="currency_code" value="USD">
+   <input type="hidden" name="amount" value="<%= total %>">
+   <input type="submit" value="PayPal">
+</form>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+    $(function(){
+        $('a.clearstock').on('click', function(){
+            if(!confirm('Confirm Clear'))
+                return false;
+        });
+
+        $('#buynow').on('click', function(event) {
+            event.preventDefault(); 
+
+            // Perform the AJAX request to /user/stock/buynow
+            $.get('/user/stock/buynow')
+                .done(function(response) {
+                    // On success, submit the PayPal form
+                    $('form.pp').submit();
+                })
+                .fail(function(error) {
+                    // On failure, log the error
+                    console.error('Error:', error);
+                });
+        });
+    });
+</script>
+
+</body>
+</html>
