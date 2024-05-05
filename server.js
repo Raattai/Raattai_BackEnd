@@ -116,10 +116,7 @@ app.use('/feedback', feedback);
 app.use('/',pages);
 
 
-//renders the raattai front end
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '/web/index.html')); 
-});
+
 
 // Server start
 const port = 3000;
