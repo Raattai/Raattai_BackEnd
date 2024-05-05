@@ -20,8 +20,8 @@ db.once('open', function () {
 const app = express();
 
 // View engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'ejs');
+// app.set('views', path.join(__dirname, 'views'));
+// app.set('view engine', 'ejs');
 
 // Body parser middleware
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -29,6 +29,7 @@ app.use(bodyParser.json());
 
 // Static folder
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'web')));
 
 // Express session middleware
 app.set('trust proxy', 1);
@@ -113,6 +114,12 @@ app.use('/user/cart', cart);
 app.use('/user', users);
 app.use('/feedback', feedback);
 app.use('/',pages);
+
+
+//renders the raattai front end
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, '/web/index.html')); 
+});
 
 // Server start
 const port = 3000;
