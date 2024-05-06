@@ -20,8 +20,8 @@ db.once('open', function () {
 const app = express();
 
 // View engine setup
-// app.set('views', path.join(__dirname, 'views'));
-// app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'ejs');
 
 // Body parser middleware
 app.use(bodyParser.urlencoded({ extended: false }));
