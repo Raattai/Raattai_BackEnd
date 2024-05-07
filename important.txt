@@ -1,0 +1,35 @@
+
+payload's
+
+
+
+
+
+Register User:
+{
+    "name": "John Doe",
+    "email": "johndoe@example.com",
+    "username": "johndoe",
+    "password": "password123",
+    "confirm_password": "password123"
+}
+
+Login:
+{
+    "username": "johndoe",
+    "password": "password123"
+}
+
+
+Forgot Password:
+{
+    "email": "johndoe@example.com"
+}
+
+
+Reset Password:
+{
+    "token": "your_token_value",
+    "OTP": "123456",
+    "newPassword": "new_password"
+}

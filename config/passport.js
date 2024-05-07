@@ -1,36 +1,39 @@
-var LocalStrategy = require("passport-local").Strategy;
-var User = require('../models/user'); 
-var bcrypt = require('bcryptjs');
+// passport.js
+const LocalStrategy = require('passport-local').Strategy;
+const bcrypt = require('bcryptjs');
+const User = require('../models/user');
 
-module.exports = function(passport){
-    
-    passport.use(new LocalStrategy(async function(username, password, done){
+module.exports = function(passport) {
+    passport.use(new LocalStrategy(async function(username, password, done) {
         try {
+            console.log(username,password);
             const user = await User.findOne({ username: username });
-            if(!user) {
-                return done(null, false, { message: 'No user found' });
+       
+            if (!user) {
+                return done(null, false, { message: 'Invalid username or password' });
             }
             const isMatch = await bcrypt.compare(password, user.password);
-            if(isMatch){
+            if (isMatch) {
                 return done(null, user);
             } else {
-                return done(null, false, { message: 'Wrong password' });
+
+                return done(null, false, { message: 'Invalid username or password' });
             }
-        } catch(err) {
-            console.error(err);
-            return done(err);
+        } catch (error) {
+            return done(error);
         }
     }));
 
-    passport.serializeUser(function(user, done){
+    passport.serializeUser(function(user, done) {
         done(null, user.id);
     });
 
-    passport.deserializeUser(function(id, done){
-        User.findById(id).then(user => {
+    passport.deserializeUser(async function(id, done) {
+        try {
+            const user = await User.findById(id);
             done(null, user);
-        }).catch(err => {
-            done(err);
-        });
+        } catch (error) {
+            done(error);
+        }
     });
 };

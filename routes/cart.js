@@ -1,20 +1,20 @@
-var express =require('express');
+var express = require('express');
 var router = express.Router();
-var Product = require('../models/product.js'); 
+var Product = require('../models/product.js');
 
 router.get('/add-to-cart/:product', async function(req, res) {
     try {
         const slug = req.params.product; 
         const product = await Product.findOne({ slug: slug });
         if (!product) {
-            throw new Error('Product not found');
+            return res.status(404).json({ error: 'Product not found' });
         }
         let cart = req.session.cart || [];
         const existingProductIndex = cart.findIndex(item => item.title === product.title);
         if (existingProductIndex !== -1) {
-           cart[existingProductIndex].qty++;
+            cart[existingProductIndex].qty++;
         } else {
-             cart.push({
+            cart.push({
                 title: product.title,
                 qty: 1, 
                 price: parseFloat(product.price).toFixed(2),
@@ -25,34 +25,15 @@ router.get('/add-to-cart/:product', async function(req, res) {
         req.session.cart = cart;
 
         console.log(req.session.cart);
-        req.flash('success', 'Product added to the cart');
-        res.redirect('/checkout');
+        return res.status(200).json({ success: 'Product added to the cart' });
 
     } catch (error) {
-        console.error('Error finding page:', error);
-        res.status(500).send('Internal Server Error');
+        console.error('Error adding product to cart:', error);
+        return res.status(500).json({ error: 'Internal Server Error' });
     }
 });
 
-
-
-// Get checkout page
-router.get('/checkout', async function(req, res) {
-
-    if(req.session.cart && req.session.cart.length == 0)
-    {
-        delete req.session.cart;
-        res.redirect('/user/cart/checkout');
-    }else{
-    res.render('checkout',{
-        title: 'Checkout',
-        cart: req.session.cart,
-      
-    });
-}
-});
-
-router.get('/update/:product', function(req, res, next) { // Add next parameter
+router.get('/update/:product', function(req, res, next) {
     var slug = req.params.product;
     var cart = req.session.cart;
     var action = req.query.action;
@@ -65,8 +46,8 @@ router.get('/update/:product', function(req, res, next) { // Add next parameter
                     break;
                 case "remove":
                     cart[i].qty--;
-                    if(cart[i].qty < 1)
-                    {
+                    if(cart[i].qty < 1) {
+                        cart.splice(i, 1);
                         if (cart.length == 0) delete req.session.cart;
                     }
                     break;
@@ -81,24 +62,18 @@ router.get('/update/:product', function(req, res, next) { // Add next parameter
             break; 
         }
     }
-    req.flash('sucess','Cart Updated');
-    res.redirect('/user/cart/checkout');
-    next(); // Call next to proceed to the next middleware or route handler
+    return res.status(200).json({ success: 'Cart updated' });
 });
 
-router.get('/clear',function(req,res){
-        
+router.get('/clear', function(req, res) {
     delete req.session.cart;
+    return res.status(200).json({ success: 'Cart cleared' });
+});
 
-    req.flash('success','Cart cleared!');
-    res.redirect('/checkout');
-})
-
-router.get('/buynow',function(req,res){
-        
+router.get('/buynow', function(req, res) {
     delete req.session.cart;
-    res.sendStatus(200);
-})
+    return res.sendStatus(200);
+});
 
 //Exports 
-module.exports=router;
+module.exports = router;
