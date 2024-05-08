@@ -47,6 +47,7 @@ router.post('/register', async function(req, res) {
             admin: 0
         });
         await newUser.save();
+        await mailer(email, 'Regitration', 'Welcome to Raattai. Please confirm your registration by login to http://localhost:4200/login')
 
         res.json({ success: 'You are now registered' });
     } catch (error) {
