@@ -19,6 +19,10 @@ var userSchema = mongoose.Schema({
         type: String,
         required: true
     },
+    phoneNumber: {
+        type: String,
+        required: true
+    },
     admin: {
         type: Number
     },

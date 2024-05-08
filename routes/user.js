@@ -26,7 +26,7 @@ function generateOTP() {
 
 router.post('/register', async function(req, res) {
     try {
-        const { name, email, username, password, confirm_password } = req.body;
+        const { name, email, username, password, phoneNumber,confirm_password } = req.body;
 
         if (password !== confirm_password) {
             return res.status(400).json({ error: 'Passwords do not match' });
@@ -44,12 +44,15 @@ router.post('/register', async function(req, res) {
             email: email,
             username: username,
             password: hash,
+            phoneNumber:phoneNumber,
             admin: 0
         });
         await newUser.save();
-        await mailer(email, 'Regitration', 'Welcome to Raattai. Please confirm your registration by login to http://localhost:4200/login')
 
-        res.json({ success: 'You are now registered' });
+        await mailer(email, 'reg', 'Welcome to Raattai and happy purchasing. Please confirm your registration by login to http://3.6.184.48:3000/login');
+       
+        res.json({ success: 'You will receive an email notification.' });
+
     } catch (error) {
         console.error('Error registering user:', error);
         res.status(500).json({ error: 'Internal Server Error' });

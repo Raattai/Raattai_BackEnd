@@ -16,25 +16,24 @@ const uploadGallery = require('../utils/gallery');
 var Stock = require('../models/stock.js'); 
 
 
-router.get('/', async (req, res, next) => {
+router.get('/', async (req, res) => {
     try {
         const count = await Product.countDocuments({});
         const products = await Product.find({}).exec();
-        res.render('admin/products', { products, count ,user: req.user});
+        res.json({ products, count });
     } catch (error) {
         console.error('Error counting products:', error);
-        res.status(500).send('Internal Server Error');
+        res.status(500).json({ error: 'Internal Server Error' });
     }
 });
 
-// Get add product
 router.get('/add-product', async (req, res) => {
     try {
         const categories = await Category.find().exec();
-        res.render('admin/add_product', { categories,user: req.user });
+        res.json({ categories });
     } catch (error) {
         console.error('Error fetching categories:', error);
-        res.status(500).send('Internal Server Error');
+        res.status(500).json({ error: 'Internal Server Error' });
     }
 });
 
@@ -68,24 +67,14 @@ function checkFileType(file, cb) {
   }
 }
 
-
-
 router.post('/add-product', upload.single('image'), async (req, res) => {
   try {
-    
     const { title, desc, price, category } = req.body;
-    const image = req.file ? '/assets/img/'+req.file.filename : '';
+    const image = req.file ? '/assets/img/' + req.file.filename : '';
 
-    // Check if any required field is missing and flash a message for each missing field
-    if (!title) req.flash('danger', 'Title is required.');
-    if (!desc) req.flash('danger', 'Description is required.');
-    if (!price) req.flash('danger', 'Price is required.');
-    if (!category) req.flash('danger', 'Category is required.');
-    if (!image) req.flash('danger', 'Image is required.');
-
-    // If any required field is missing, redirect back to the add-product page
+    // Check if any required field is missing
     if (!title || !desc || !price || !category || !image) {
-      return res.redirect('/admin/products/add-product');
+      return res.status(400).json({ error: 'Missing required fields' });
     }
 
     // Create a new product instance
@@ -97,7 +86,7 @@ router.post('/add-product', upload.single('image'), async (req, res) => {
       image: image,
       category: category 
     });
-    
+
     // Save the product to the database
     await newProduct.save();
 
@@ -121,43 +110,39 @@ router.post('/add-product', upload.single('image'), async (req, res) => {
         fs.rename(req.file.path, imagePath, err => {
           if (err) {
             console.error('Error moving image:', err);
-            req.flash('danger', 'Error moving image.');
+            return res.status(500).json({ error: 'Error moving image' });
           } else {
             console.log('Image moved successfully:', req.file.path, '->', imagePath);
+            return res.status(201).json({ message: 'Product added successfully' });
           }
-          res.redirect('/admin/products'); // Redirect regardless of the error
         });
       } else {
         console.error('Source file does not exist:', req.file.path);
-        req.flash('danger', 'Error moving image: Source file does not exist.');
-        res.redirect('/admin/products'); // Redirect regardless of the error
+        return res.status(500).json({ error: 'Source file does not exist' });
       }
     } else {
-      req.flash('success', 'Product added successfully.');
-      res.redirect('/admin/products');
+      return res.status(201).json({ message: 'Product added successfully' });
     }
   } catch (error) {
     console.error('Error adding product:', error);
-    req.flash('danger', 'Error adding product.');
-    res.redirect('/admin/products/add-product');
+    return res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
 
 
-
-// Get edit product
 router.get('/edit-product/:_id', async function(req, res) {
   try {
-    var errors;
-    if (req.session.errors) errors = req.session.errors;
-    req.session.errors = null;
+    const productId = req.params._id;
 
-    const categories = await Category.find()
-    const product = await Product.findOne({ _id: req.params._id });
+    // Find product and categories asynchronously
+    const [product, categories] = await Promise.all([
+      Product.findOne({ _id: productId }),
+      Category.find()
+    ]);
 
     if (!product) {
-      return res.status(404).send("Product not found");
+      return res.status(404).json({ error: "Product not found" });
     }
 
     const galleryDir = 'web/assets/img/' + product._id + '/gallery';
@@ -166,33 +151,28 @@ router.get('/edit-product/:_id', async function(req, res) {
     fs.readdir(galleryDir, function(err, files){
       if(err) {
         console.error(err);
-        return res.status(500).send('Internal Server Error');
+        return res.status(500).json({ error: 'Internal Server Error' });
       } 
       
-      // If no error, proceed with rendering the view
+      // If no error, send JSON response
       const galleryImages = files;
-      res.render('admin/edit_product', {
+      res.status(200).json({
         title: product.title,
-        errors: errors,
+        errors: null, // Errors are not relevant for JSON response
         desc: product.desc,
         categories: categories,
         category: product.category.replace(/\s+/g , '-').toLowerCase(),
         price: product.price,
         image: product.image,
         galleryImages: galleryImages, 
-        product: product ,
-        
+        product: product 
       });
     });
   } catch (error) {
     console.error(error);
-    res.status(500).send('Internal Server Error');
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
-
-
-
-// Post edit-product
 router.post('/edit-product/:id', upload.single('image'), async (req, res) => {
   try {
     const productId = req.params.id;
@@ -203,22 +183,16 @@ router.post('/edit-product/:id', upload.single('image'), async (req, res) => {
 
     // Check if the product exists
     if (!product) {
-      req.flash('danger', 'Product not found.');
-      return res.redirect('/admin/products');
+      return res.status(404).json({ error: 'Product not found' });
     }
 
     // Check if a new image is uploaded
     if (req.file) {
-      // Delete the existing image if it exists
       if (product.image) {
         const imagePath = path.join('web/assets/img', productId, product.image);
         fs.unlinkSync(imagePath);
       }
-
-      // Set the new image file name
       product.image = req.file.filename;
-
-      // Move the uploaded image to the destination directory
       const destinationDir = path.join('web/assets/img', productId);
       await mkdirp(destinationDir);
       fs.renameSync(req.file.path, path.join(destinationDir, req.file.filename));
@@ -226,7 +200,7 @@ router.post('/edit-product/:id', upload.single('image'), async (req, res) => {
 
     // Update the product fields
     product.title = title;
-    product.slug= title.toLowerCase();
+    product.slug = title.toLowerCase();
     product.desc = desc;
     product.price = price;
     product.category = category;
@@ -234,16 +208,13 @@ router.post('/edit-product/:id', upload.single('image'), async (req, res) => {
     // Save the updated product
     await product.save();
 
-    req.flash('success', 'Product updated successfully.');
-    res.redirect('/admin/products');
+    return res.status(200).json({ message: 'Product updated successfully' });
   } catch (error) {
     console.error('Error updating product:', error);
-    req.flash('danger', 'Error updating product.');
-    res.redirect('/admin/products');
+    return res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
-// POST route to handle updating the product gallery
 router.post('/edit-product/:id/gallery', uploadGallery.array('gallery', 5), async (req, res) => {
   try {
     const productId = req.params.id;
@@ -253,70 +224,57 @@ router.post('/edit-product/:id/gallery', uploadGallery.array('gallery', 5), asyn
     const product = await Product.findById(productId);
 
     if (!product) {
-      return res.status(404).send('Product not found.');
+      return res.status(404).json({ error: 'Product not found' });
     }
 
     // Check if there are uploaded images
     if (!images || images.length === 0) {
-      req.flash('danger','No image uploaded');
-      return res.redirect('/admin/products/edit-product/' + productId)
+      return res.status(400).json({ error: 'No image uploaded' });
     }
 
     // Save the filenames to the database
     images.forEach(async (image) => {
       const newGalleryImage = {
-        filename: `/assets/img/${productId}/gallery/`+image.filename
+        filename: `/assets/img/${productId}/gallery/` + image.filename
       };
       product.galleryImages.push(newGalleryImage);
     });
 
     // Save the updated product with gallery images
     await product.save();
-    return res.redirect('/admin/products/edit-product/' + productId)
-   } catch (error) {
+
+    return res.status(200).json({ message: 'Gallery images uploaded successfully' });
+  } catch (error) {
     console.error('Error uploading gallery images:', error);
-    res.status(500).send('Internal Server Error');
+    return res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
-// POST route to delete an image
 router.post('/delete-image/:productId/:imageId', async (req, res) => {
   const { productId, imageId } = req.params;
 
   try {
-    // Find the product by ID
     const product = await Product.findById(productId);
 
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
     }
 
-    // Find the image to be deleted
     const image = product.galleryImages.find(img => img._id.toString() === imageId);
 
     if (!image) {
       return res.status(404).json({ message: 'Image not found' });
     }
 
-    // Get the filename of the image
     const filename = image.filename;
-
-    // Remove the image from the product's galleryImages array
     product.galleryImages = product.galleryImages.filter(img => img._id.toString() !== imageId);
-
-    // Save the updated product
     await product.save();
-
-    // Construct the path to the image file
     const imagePath = path.join(__dirname, '..', 'web', 'assets','img', productId, 'gallery', filename);
-
-    // Check if the file exists before attempting to delete it
     if (fs.existsSync(imagePath)) {
-      // Delete the image file
       fs.unlinkSync(imagePath);
-      console.log('Image file deleted:', imagePath); // Log success message
+      console.log('Image file deleted:', imagePath); 
     } else {
-      console.log('Image file not found:', imagePath); // Log file not found
+      console.log('Image file not found:', imagePath); 
     }
 
     res.status(200).json({ message: 'Image deleted successfully' });
@@ -333,51 +291,38 @@ router.get('/delete-product/:id', async function(req, res) {
   try {
     const productId = req.params.id;
 
-    // Find the product by its ID
     const product = await Product.findById(productId);
 
-    // Check if the product exists
     if (!product) {
       req.flash('error', 'Product not found');
       return res.redirect('/admin/products');
     }
 
-    // Retrieve the image file name
     const imageName = product.image;
 
-    // Retrieve the gallery images
     const galleryImages = product.galleryImages;
 
-    // Delete the product from the database
     await Product.findByIdAndDelete(productId);
 
-    // If the product had an associated image
     if (imageName) {
-      // Construct the path to the image directory
       const imageDir = path.join('web/assets/img', productId);
-
-      // Check if the image directory exists before attempting to delete
       if (fs.existsSync(imageDir)) {
-        // Delete the image file and its directory
         await fs.promises.rm(imageDir, { recursive: true });
       }
     }
-
-    // Delete associated gallery images and their directories
     await Promise.all(galleryImages.map(async (image) => {
       const imageDir = path.join('web/assets/img', productId, 'gallery', image.filename);
-      // Check if the image directory exists before attempting to delete
       if (fs.existsSync(imageDir)) {
         await fs.promises.rm(imageDir, { recursive: true });
       }
     }));
 
-    req.flash('success', 'Product and associated images deleted');
-    res.redirect('/admin/products');
+    req.send('success', 'Product and associated images deleted');
+   
   } catch (error) {
     console.error(error);
-    req.flash('error', 'Failed to delete product and associated images');
-    res.redirect('/admin/products');
+    req.send('error', 'Failed to delete product and associated images');
+   
   }
 });
 
