@@ -2,7 +2,7 @@ var express = require('express');
 var router = express.Router();
 var Product = require('../models/product.js');
 var Cart = require('../models/cart.js')
-
+var mongoose = require('mongoose')
 
 router.post('/add-to-cart/:product/:_id', async function(req, res) {
     try {
@@ -121,6 +121,38 @@ router.get('/my-cart/:_id', async function(req, res) {
         return res.status(500).json({ error: 'Internal Server Error' });
     }
 });
+router.get('/total/:_id', async function(req, res) {
+    try {
+        const userId = req.params._id;
+        
+        // Find the user's cart
+        const userCart = await Cart.findOne({ user: userId });
+
+        if (!userCart) {
+            return res.status(404).json({ error: 'Cart not found for the user' });
+        }
+
+        let total = 0;
+
+        // Iterate over each item in the cart
+        for (const cartItem of userCart.items) {
+            // Find the corresponding product
+            const product = await Product.findById(cartItem.product);
+
+            if (product) {
+                // Calculate the total value of the item and add it to the total
+                total += cartItem.quantity * product.price;
+            }
+        }
+
+        return res.status(200).json({ total });
+    } catch (error) {
+        console.error('Error calculating cart total:', error);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+
 
 router.get('/count/:_id', async function(req, res) {
     try {
