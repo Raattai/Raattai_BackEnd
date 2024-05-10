@@ -136,6 +136,7 @@ router.get('/get-user',(req,res)=>{
     const user=req.user
     res.json({ user });
 })
+
 // Route to reset password
 router.post('/reset-password', async (req, res) => {
     try {

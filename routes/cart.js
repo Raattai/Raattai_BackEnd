@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var Product = require('../models/product.js');
+var Cart = require('../models/cart.js')
 
 router.get('/add-to-cart/:product', async function(req, res) {
     try {
@@ -70,10 +71,49 @@ router.get('/clear', function(req, res) {
     return res.status(200).json({ success: 'Cart cleared' });
 });
 
-router.get('/buynow', function(req, res) {
-    delete req.session.cart;
-    return res.sendStatus(200);
+
+router.get('/my-cart', async function(req, res) {
+    try {
+        const userId = req.user._id; 
+        if (!userId) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+
+        const userCart = await Cart.findOne({ user: userId }).populate('items.product');
+
+        if (!userCart) {
+            return res.status(404).json({ error: 'Cart not found for the user' });
+        }
+        return res.status(200).json({ cart: userCart });
+
+    } catch (error) {
+        console.error('Error fetching user cart:', error);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
 });
+
+router.get('/save-now', async function(req, res) {
+    try {
+        const cart = req.session.cart || [];
+        const userId = req.session.userId; 
+        if (cart.length > 0 && userId) {
+            await Cart.findOneAndUpdate(
+                { user: userId },
+                { $set: { items: cart } },
+                { upsert: true }
+            );
+        }
+
+        delete req.session.cart;
+        return res.sendStatus(200);
+
+    } catch (error) {
+        console.error('Error processing purchase:', error);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+
 
 //Exports 
 module.exports = router;
