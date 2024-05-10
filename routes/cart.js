@@ -4,7 +4,7 @@ var Product = require('../models/product.js');
 var Cart = require('../models/cart.js')
 
 
-router.get('/add-to-cart/:product', async function(req, res) {
+router.post('/add-to-cart/:product/:_id', async function(req, res) {
     try {
         const slug = req.params.product; 
         const product = await Product.findOne({ slug: slug });
@@ -12,7 +12,7 @@ router.get('/add-to-cart/:product', async function(req, res) {
             return res.status(404).json({ error: 'Product not found' });
         }
 
-        const userId = req.user._id; 
+        const userId = req.params._id; 
         let cart = await Cart.findOne({ user: userId });
         if (!cart) {
             cart = new Cart({ user: userId, items: [] });
@@ -103,9 +103,9 @@ router.get('/add-to-cart/:product', async function(req, res) {
 // });
 
 
-router.get('/my-cart', async function(req, res) {
+router.get('/my-cart/:_id', async function(req, res) {
     try {
-        const userId = req.user._id; 
+        const userId = req.params._id; 
         console.log(userId)
         if (!userId) {
             return res.status(401).json({ error: 'Unauthorized' });
@@ -122,9 +122,9 @@ router.get('/my-cart', async function(req, res) {
     }
 });
 
-router.get('/count', async function(req, res) {
+router.get('/count/:_id', async function(req, res) {
     try {
-        const userId = req.user._id; 
+        const userId = req.params._id; 
          const cartCount = await Cart.aggregate([
             { $match: { user: userId } },
             { $unwind: "$items" },
