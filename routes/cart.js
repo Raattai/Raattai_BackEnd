@@ -102,7 +102,6 @@ router.post('/add-to-cart/:product/:_id', async function(req, res) {
 //     return res.status(200).json({ success: 'Cart cleared' });
 // });
 
-
 router.get('/my-cart/:_id', async function(req, res) {
     try {
         const userId = req.params._id; 
@@ -110,23 +109,9 @@ router.get('/my-cart/:_id', async function(req, res) {
         if (!userId) {
             return res.status(401).json({ error: 'Unauthorized' });
         }
-        const userCart = await Cart.findOne({ user: userId }).populate('items.product');
-        if (!userCart) {
-            return res.status(404).json({ error: 'Cart not found for the user' });
-        }
-        return res.status(200).json({ cart: userCart });
-
-    } catch (error) {
-        console.error('Error fetching user cart:', error);
-        return res.status(500).json({ error: 'Internal Server Error' });
-    }
-});
-router.get('/total/:_id', async function(req, res) {
-    try {
-        const userId = req.params._id;
         
         // Find the user's cart
-        const userCart = await Cart.findOne({ user: userId });
+        const userCart = await Cart.findOne({ user: userId }).populate('items.product');
 
         if (!userCart) {
             return res.status(404).json({ error: 'Cart not found for the user' });
@@ -145,12 +130,44 @@ router.get('/total/:_id', async function(req, res) {
             }
         }
 
-        return res.status(200).json({ total });
+        return res.status(200).json({ cart: userCart, total: total });
+
     } catch (error) {
-        console.error('Error calculating cart total:', error);
+        console.error('Error fetching user cart:', error);
         return res.status(500).json({ error: 'Internal Server Error' });
     }
 });
+
+// router.get('/total/:_id', async function(req, res) {
+//     try {
+//         const userId = req.params._id;
+        
+//         // Find the user's cart
+//         const userCart = await Cart.findOne({ user: userId });
+
+//         if (!userCart) {
+//             return res.status(404).json({ error: 'Cart not found for the user' });
+//         }
+
+//         let total = 0;
+
+//         // Iterate over each item in the cart
+//         for (const cartItem of userCart.items) {
+//             // Find the corresponding product
+//             const product = await Product.findById(cartItem.product);
+
+//             if (product) {
+//                 // Calculate the total value of the item and add it to the total
+//                 total += cartItem.quantity * product.price;
+//             }
+//         }
+
+//         return res.status(200).json({ total });
+//     } catch (error) {
+//         console.error('Error calculating cart total:', error);
+//         return res.status(500).json({ error: 'Internal Server Error' });
+//     }
+// });
 
 
 
