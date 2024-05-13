@@ -71,7 +71,9 @@ router.post('/login', function(req, res, next) {
             if (err) {
                 return res.status(500).json({ error: 'Error logging in user' });
             }
-            return res.json({ message: 'Login successful', user: req.user });
+            
+            const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '12h' });
+            return res.json({ message: 'Login successful', token: token });
         });
     })(req, res, next);
 });
@@ -84,29 +86,14 @@ router.get('/get-user',(req,res)=>{
 
 router.get('/logout', async function(req, res) {
     try {
-        if (!req.user) {
-            return res.status(401).json({ error: 'You are not logged in' });
-        }
-
-        req.logout(function(err) {
-            if (err) {
-                console.error('Error logging out:', err);
-                return res.status(500).json({ error: 'Internal Server Error' });
-            }
-
-            req.session.destroy(function(err) {
-                if (err) {
-                    console.error('Error destroying session:', err);
-                    return res.status(500).json({ error: 'Internal Server Error' });
-                }
-                res.json({ message: 'You are logged out!' });
-            });
-        });
+        res.clearCookie('jwtToken'); // Assuming the cookie name is 'jwtToken'
+        res.json({ message: 'You are logged out!' });
     } catch (error) {
-        console.error('Error rendering login page:', error);
+        console.error('Error logging out:', error);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
+
 
 // Route to initiate password reset
 router.post('/forgot-password', async (req, res) => {

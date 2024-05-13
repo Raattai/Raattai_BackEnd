@@ -3,8 +3,27 @@ var router = express.Router();
 var Product = require('../models/product.js');
 var Cart = require('../models/cart.js')
 var mongoose = require('mongoose')
+const jwt = require('jsonwebtoken');
+const JWT_SECRET = 'SHY23FDA45G2G1K89KH5sec4H8KUTF85ret';
 
-router.post('/add-to-cart/:product/:_id', async function(req, res) {
+
+function authenticateToken(req, res, next) {
+    const token = req.headers['authorization']; // Assuming the token is sent in the Authorization header
+
+    if (!token) {
+        return res.status(401).json({ error: 'Unauthorized: No token provided' });
+    }
+
+    jwt.verify(token, JWT_SECRET, (err, decoded) => {
+        if (err) {
+            return res.status(403).json({ error: 'Forbidden: Invalid token' });
+        }
+        req.userId = decoded.userId; // Set userId in the request object for later use
+        next();
+    });
+}
+
+router.post('/add-to-cart/:product', authenticateToken, async function(req, res) {
     try {
         const slug = req.params.product; 
         const product = await Product.findOne({ slug: slug });
@@ -12,7 +31,7 @@ router.post('/add-to-cart/:product/:_id', async function(req, res) {
             return res.status(404).json({ error: 'Product not found' });
         }
 
-        const userId = req.params._id; 
+        const userId = req.userId; // Get userId from the authenticated request
         let cart = await Cart.findOne({ user: userId });
         if (!cart) {
             cart = new Cart({ user: userId, items: [] });
@@ -32,7 +51,6 @@ router.post('/add-to-cart/:product/:_id', async function(req, res) {
         return res.status(500).json({ error: 'Internal Server Error' });
     }
 });
-
 
 // router.get('/add-to-cart/:product', async function(req, res) {
 //     try {
@@ -102,15 +120,13 @@ router.post('/add-to-cart/:product/:_id', async function(req, res) {
 //     return res.status(200).json({ success: 'Cart cleared' });
 // });
 
-router.get('/my-cart/:_id', async function(req, res) {
+router.get('/my-cart', authenticateToken,async function(req, res) {
     try {
-        const userId = req.params._id; 
-        console.log(userId)
+       const userId = req.userId;
+         console.log(userId)
         if (!userId) {
             return res.status(401).json({ error: 'Unauthorized' });
         }
-        
-        // Find the user's cart
         const userCart = await Cart.findOne({ user: userId }).populate('items.product');
 
         if (!userCart) {
@@ -119,13 +135,10 @@ router.get('/my-cart/:_id', async function(req, res) {
 
         let total = 0;
 
-        // Iterate over each item in the cart
         for (const cartItem of userCart.items) {
-            // Find the corresponding product
             const product = await Product.findById(cartItem.product);
 
             if (product) {
-                // Calculate the total value of the item and add it to the total
                 total += cartItem.quantity * product.price;
             }
         }
