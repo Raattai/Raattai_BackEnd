@@ -142,8 +142,9 @@ router.get('/my-cart', authenticateToken,async function(req, res) {
                 total += cartItem.quantity * product.price;
             }
         }
+     
 
-        return res.status(200).json({ cart: userCart, total: total });
+        return res.status(200).json({ cart: userCart, total: total,count: userCart.items.length });
 
     } catch (error) {
         console.error('Error fetching user cart:', error);
@@ -183,30 +184,6 @@ router.get('/my-cart', authenticateToken,async function(req, res) {
 // });
 
 
-
-router.get('/count/:_id', async function(req, res) {
-    try {
-        const userId = req.params._id; 
-         const cartCount = await Cart.aggregate([
-            { $match: { user: userId } },
-            { $unwind: "$items" },
-            {
-                $group: {
-                    _id: "$user",
-                    totalItems: { $sum: "$items.quantity" }
-                }
-            }
-        ]);
-
-        const count = cartCount.length > 0 ? cartCount[0].totalItems : 0;
-
-        return res.status(200).json({ count });
-
-    } catch (error) {
-        console.error('Error counting cart items:', error);
-        return res.status(500).json({ error: 'Internal Server Error' });
-    }
-});
 
 // router.post('/save-now', async function(req, res) {
 //     try {
