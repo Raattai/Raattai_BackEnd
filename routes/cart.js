@@ -8,8 +8,7 @@ const JWT_SECRET = 'SHY23FDA45G2G1K89KH5sec4H8KUTF85ret';
 
 
 function authenticateToken(req, res, next) {
-    const token = req.headers['authorization']; // Assuming the token is sent in the Authorization header
-
+    const token = req.headers['authorization']; 
     if (!token) {
         return res.status(401).json({ error: 'Unauthorized: No token provided' });
     }
@@ -23,9 +22,10 @@ function authenticateToken(req, res, next) {
     });
 }
 
-router.post('/add-to-cart/:product', authenticateToken, async function(req, res) {
+router.post('/add-to-cart/:product/:qty', authenticateToken, async function(req, res) {
     try {
-        const slug = req.params.product; 
+        const slug = decodeURIComponent(req.params.product);
+        const qty = req.params.qty
         const product = await Product.findOne({ slug: slug });
         if (!product) {
             return res.status(404).json({ error: 'Product not found' });
@@ -40,7 +40,7 @@ router.post('/add-to-cart/:product', authenticateToken, async function(req, res)
         if (existingProductIndex !== -1) {
             cart.items[existingProductIndex].quantity++;
         } else {
-            cart.items.push({ product: product._id, quantity: 1 });
+            cart.items.push({ product: product._id, quantity: qty });
         }
         await cart.save();
         console.log(cart);

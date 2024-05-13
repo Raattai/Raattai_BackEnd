@@ -78,6 +78,7 @@ router.post('/login', function(req, res, next) {
     })(req, res, next);
 });
 
+
 router.get('/get-user',(req,res)=>{
     const user=req.user
     res.json({ user });
@@ -87,13 +88,18 @@ router.get('/get-user',(req,res)=>{
 router.get('/logout', async function(req, res) {
     try {
         res.clearCookie('jwtToken'); 
-          res.json({ message: 'You are logged out!' });
+        res.removeHeader('Authorization');
+        res.json({ message: 'You are logged out!' });
     } catch (error) {
         console.error('Error logging out:', error);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
 
+router.get('/get-user',(req,res)=>{
+    const user=req.user
+    res.json({ user });
+})
 
 // Route to initiate password reset
 router.post('/forgot-password', async (req, res) => {
@@ -108,7 +114,7 @@ router.post('/forgot-password', async (req, res) => {
 
         const OTP = generateOTP();
         // Generate OTP and send it to the user's email
-        // await mailer(email, 'Password Reset OTP', `Your OTP for password reset is: ${OTP}`, `Your OTP for password reset is: <b>${OTP}</b>`);
+         await mailer(email, 'Password Reset OTP', `Your OTP for password reset is: ${OTP}`, `Your OTP for password reset is: <b>${OTP}</b>`);
         console.log()
         // Generate JWT token with email and OTP
         const token = jwt.sign({ email, OTP }, JWT_SECRET, { expiresIn: '15m' });
@@ -119,13 +125,9 @@ router.post('/forgot-password', async (req, res) => {
     }
 });
 
-router.get('/get-user',(req,res)=>{
-    const user=req.user
-    res.json({ user });
-})
 
 // Route to reset password
-router.post('/reset-password', async (req, res) => {
+router.post('/reset-password',async (req, res) => {
     try {
         const { token, OTP, newPassword } = req.body;
 
