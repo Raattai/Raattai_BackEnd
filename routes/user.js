@@ -73,7 +73,7 @@ router.post('/login', function(req, res, next) {
             }
             
             const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '12h' });
-            return res.json({ message: 'Login successful', token: token });
+            return res.json({ message: 'Login successful',user: req.user, token: token });
         });
     })(req, res, next);
 });
@@ -86,8 +86,8 @@ router.get('/get-user',(req,res)=>{
 
 router.get('/logout', async function(req, res) {
     try {
-        res.clearCookie('jwtToken'); // Assuming the cookie name is 'jwtToken'
-        res.json({ message: 'You are logged out!' });
+        res.clearCookie('jwtToken'); 
+          res.json({ message: 'You are logged out!' });
     } catch (error) {
         console.error('Error logging out:', error);
         res.status(500).json({ error: 'Internal Server Error' });
