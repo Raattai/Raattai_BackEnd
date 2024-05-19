@@ -2,7 +2,8 @@ var express = require('express');
 var router = express.Router();
 var Product = require('../models/product.js');
 var Cart = require('../models/cart.js')
-var mongoose = require('mongoose')
+var Transaction = require('../models/transaction.js');
+var mongoose = require('mongoose');
 
 router.post('/add-to-cart/:product/:_id', async function(req, res) {
     try {
@@ -138,37 +139,29 @@ router.get('/my-cart/:_id', async function(req, res) {
     }
 });
 
-// router.get('/total/:_id', async function(req, res) {
-//     try {
-//         const userId = req.params._id;
-        
-//         // Find the user's cart
-//         const userCart = await Cart.findOne({ user: userId });
 
-//         if (!userCart) {
-//             return res.status(404).json({ error: 'Cart not found for the user' });
-//         }
 
-//         let total = 0;
+router.get('/txn/:_id', async function(req, res) {
+    try {
+        const txnId = req.params._id; 
+        if (!txnId) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+        console.log(txnId)
+        // Find the user's cart
+        const txnDetail = await Transaction.findOne({ txnId: txnId });
+        //const products = await Transaction.find(); // Find all txns
+        console.log(txnDetail)
+        if (!txnDetail) {
+            return res.status(404).json({ error: 'Txn not found for the user' });
+        }
+        return res.status(200).json({ transaction: txnDetail});
 
-//         // Iterate over each item in the cart
-//         for (const cartItem of userCart.items) {
-//             // Find the corresponding product
-//             const product = await Product.findById(cartItem.product);
-
-//             if (product) {
-//                 // Calculate the total value of the item and add it to the total
-//                 total += cartItem.quantity * product.price;
-//             }
-//         }
-
-//         return res.status(200).json({ total });
-//     } catch (error) {
-//         console.error('Error calculating cart total:', error);
-//         return res.status(500).json({ error: 'Internal Server Error' });
-//     }
-// });
-
+    } catch (error) {
+        console.error('Error fetching Txn Details:', error);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
 
 
 router.get('/count/:_id', async function(req, res) {

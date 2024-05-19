@@ -10,6 +10,13 @@ const cors = require('cors');
 const expressMessages = require('express-messages');
 const Category = require('./models/category');
 const Stock = require('./models/stock');
+
+const ccav = require('./utils/ccavutil.js');
+const ccavReqHandler = require('./utils/ccavRequestHandler.js');
+const ccavResHandler = require('./utils/ccavResponseHandler.js');
+    
+    
+
 mongoose.connect(config.database, { useNewUrlParser: true, useUnifiedTopology: true });
 const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'connection error: '));
@@ -102,6 +109,7 @@ const adminCategories = require('./routes/admin_category.js');
 const adminService = require('./routes/admin_service.js');
 const feedback = require('./routes/user_feedback.js');
 const stock = require('./routes/admin_stock.js');
+const orders = require('./routes/order.js');
 
 
 app.use('/admin/products', adminProducts);
@@ -113,9 +121,16 @@ app.use('/client', products);
 app.use('/user/cart', cart);
 app.use('/user', users);
 app.use('/feedback', feedback);
+app.use('/orders', orders)
 app.use('/',pages);
 
-
+app.use('/ccavRequestHandler', (req,res)=>{
+  ccavReqHandler.postReq(req, res);
+});
+app.use('/ccavResponse', (req,res)=>{
+  console.log('hi')
+  ccavResHandler.postRes(req,res);
+});
 
 
 // Server start
