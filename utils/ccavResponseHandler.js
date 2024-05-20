@@ -34,30 +34,34 @@ exports.postRes = function (request, response) {
     temp[subSplit[0]] = subSplit[1];
   }
   console.log(temp);
-  request.on("data", function (data) {
-    ccavEncResponse += data;
-    ccavPOST = qs.parse(ccavEncResponse);
-    var encryption = ccavPOST.encResp;
-    console.log("encrytption", encryption);
-    ccavResponse = ccav.decrypt(encryption, keyBase64, ivBase64);
-    console.log("response", ccavResponse);
-  });
+  //store the  transaction details and redirect with order id to front end. 
+		/*logic to b done
+		*/
 
-  request.on("end", function () {
-    var pData = "";
-    pData = "<table border=1 cellspacing=2 cellpadding=2><tr><td>";
-    pData = pData + ccavResponse.replace(/=/gi, "</td><td>");
-    pData = pData.replace(/&/gi, "</td></tr><tr><td>");
-    pData = pData + "</td></tr></table>";
-    htmlcode =
-      '<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><title>Response Handler</title></head><body><center><font size="4" color="blue"><b>Response Page</b></font><br>' +
-      pData +
-      "</center><br></body></html>";
-    //response.writeHeader(200, {"Content-Type": "text/html"});
-    //response.write(htmlcode);
-    response.redirect(
-      "http://localhost:4200/shop/success-payment?id=6645e094ff607d97a7c6ae71"
-    );
-    response.end();
-  });
+//   request.on("data", function (data) {
+//     ccavEncResponse += data;
+//     ccavPOST = qs.parse(ccavEncResponse);
+//     var encryption = ccavPOST.encResp;
+//     console.log("encrytption", encryption);
+//     ccavResponse = ccav.decrypt(encryption, keyBase64, ivBase64);
+//     console.log("response", ccavResponse);
+//   });
+
+//   request.on("end", function () {
+//     var pData = "";
+//     pData = "<table border=1 cellspacing=2 cellpadding=2><tr><td>";
+//     pData = pData + ccavResponse.replace(/=/gi, "</td><td>");
+//     pData = pData.replace(/&/gi, "</td></tr><tr><td>");
+//     pData = pData + "</td></tr></table>";
+//     htmlcode =
+//       '<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><title>Response Handler</title></head><body><center><font size="4" color="blue"><b>Response Page</b></font><br>' +
+//       pData +
+//       "</center><br></body></html>";
+//     //response.writeHeader(200, {"Content-Type": "text/html"});
+//     //response.write(htmlcode);
+//     response.redirect(
+//       "http://localhost:4200/shop/success-payment?id=6645e094ff607d97a7c6ae71"
+//     );
+//     response.end();
+//   });
 };
