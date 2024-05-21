@@ -47,7 +47,30 @@ async function to_store_order_transaction(res) {
     return 'error';
   }
  };
- 
+
+
+
+router.get('/order/:_id', async function(req, res) {
+    try {
+        const order_id = req.params._id; 
+        if (!order_id) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+        console.log(order_id)
+        const ordDetail = await Order.findOne({ order_id: order_id });
+        console.log(txnDetail)
+        if (!txnDetail) {
+            return res.status(404).json({ error: 'Txn not found for the user' });
+        }
+        return res.status(200).json({ order: ordDetail});
+
+    } catch (error) {
+        console.error('Error fetching Txn Details:', error);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+
 // app.get("/result_order",(req,res)=>{
 //   res.send(to_store_order_transaction(temp))
 // });
