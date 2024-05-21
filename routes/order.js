@@ -37,5 +37,22 @@ async function latestOrder() {
   }
 };
 
+async function to_store_order_transaction(res) {
+  try {
+      const order_transaction = new Order(res);
+       const result= await order_transaction.save();
+        console.log(result)
+  } catch (error) {
+    console.error("Error fetching orders:", error);
+    return 'error';
+  }
+ };
+ 
+// app.get("/result_order",(req,res)=>{
+//   res.send(to_store_order_transaction(temp))
+// });
+
+// to_store_order_transaction(temp)
+
 //Exports
 module.exports = latestOrder;
