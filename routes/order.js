@@ -9,7 +9,7 @@ router.get("/order/:_id", async function (req, res) {
       return res.status(401).json({ error: "Unauthorized" });
     }
     console.log(order_id);
-    const ordDetail = await Order.findOne({ order_id: order_id });
+    const ordDetail = await Order.findOne({ _id: order_id });
     console.log(ordDetail);
     if (!ordDetail) {
       return res.status(404).json({ error: "Txn not found for the user" });
