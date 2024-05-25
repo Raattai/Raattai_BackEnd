@@ -24,7 +24,7 @@ exports.postReq = async function(request,response){
     orderId = await orders.latestOrder(); 
     
     console.log(orderId)
-    input = `merchant_id=${merchantId}&order_id=${orderId}&currency=${request.body.currency}&amount=${request.body.amount}&redirect_url=http://localhost:3000/ccavResponse&cancel_url=http://localhost:3000/ccavResponse&language=EN`		
+    input = `merchant_id=${merchantId}&order_id=${orderId}&currency=${request.body.currency}&amount=${request.body.amount}&redirect_url=http://localhost:3000/ccavResponse&cancel_url=http://localhost:4200/shop/failure-payment&language=EN`		
     
     encRequest = ccav.encrypt(input, keyBase64, ivBase64);    
     response.json({key:encRequest});

@@ -18,15 +18,11 @@ exports.postRes = async function (request, response) {
   var ivBase64 = Buffer.from([
     0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b,
     0x0c, 0x0d, 0x0e, 0x0f,
-  ]).toString("base64");
-  console.log(request.body);
-  let encryption = request.body.encResp;
-  console.log(encryption);
-  ccavResponse = ccav.decrypt(encryption, keyBase64, ivBase64);
-  console.log("response", ccavResponse);
+  ]).toString("base64");  
+  let encryption = request.body.encResp;  
+  ccavResponse = ccav.decrypt(encryption, keyBase64, ivBase64); 
 
-  let removeAmber = ccavResponse.split("&");
-  console.log(removeAmber);
+  let removeAmber = ccavResponse.split("&");  
   let temp = {};
   for (var i = 0; i < removeAmber.length; i++) {
     console.log(removeAmber[i].split("="));
@@ -36,9 +32,16 @@ exports.postRes = async function (request, response) {
   console.log(temp);
   const result =  await orders.to_store_order_transaction(temp);
   console.log(result)
-  response.redirect(
-    `http://localhost:4200/shop/success-payment?id=${result._id}`
-  );
+  if(temp.order_status === 'Success') {
+    response.redirect(
+      `http://localhost:4200/shop/success-payment?id=${result._id}`
+    );
+  } else {
+    response.redirect(
+      `http://localhost:4200/shop/failure-payment?id=${result._id}`
+    );
+  }
+  
  
 
 };

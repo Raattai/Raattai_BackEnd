@@ -84,7 +84,10 @@ router.get('/get-user',(req,res)=>{
 
 router.get('/logout', async function(req, res) {
     try {
-        if (!req.user) {
+        const decoded = jwt.verify(req.headers.authorization, JWT_SECRET);; 
+        console.log(decoded)
+        const userId = decoded.userId 
+        if (!userId) {
             return res.status(401).json({ error: 'You are not logged in' });
         }
 
@@ -103,8 +106,14 @@ router.get('/logout', async function(req, res) {
             });
         });
     } catch (error) {
-        console.error('Error rendering login page:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
+        console.log(typeof(error));
+        console.log(error.name);
+        if(error.name === 'TokenExpiredError'){
+            res.status(200).json({ message: 'Token Expired' });
+        } else {
+            console.error('Error rendering login page:', error);
+            res.status(500).json({ error: error });
+        }       
     }
 });
 

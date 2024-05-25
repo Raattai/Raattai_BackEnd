@@ -3,30 +3,39 @@ var router = express.Router();
 var Product = require('../models/product.js');
 var Cart = require('../models/cart.js')
 var Transaction = require('../models/transaction.js');
+const jwt = require('jsonwebtoken');
+const JWT_SECRET = 'SHY23FDA45G2G1K89KH5sec4H8KUTF85ret';
 var mongoose = require('mongoose');
 
-router.post('/add-to-cart/:product/:_id', async function(req, res) {
+router.post('/add-to-cart/:product/:qty', async function(req, res) {
     try {
-        const slug = req.params.product; 
-        const product = await Product.findOne({ slug: slug });
-        if (!product) {
-            return res.status(404).json({ error: 'Product not found' });
-        }
-
-        const userId = req.params._id; 
-        let cart = await Cart.findOne({ user: userId });
-        if (!cart) {
-            cart = new Cart({ user: userId, items: [] });
-        }
-        const existingProductIndex = cart.items.findIndex(item => item.product.equals(product._id));
-        if (existingProductIndex !== -1) {
-            cart.items[existingProductIndex].quantity++;
+        const decoded = jwt.verify(req.headers.authorization, JWT_SECRET);; 
+        console.log(decoded)
+        const userId = decoded.userId 
+        if(decoded && userId){
+            const slug = req.params.product; 
+            const qty = req.params.qty;
+            const product = await Product.findOne({ slug: slug });
+            if (!product) {
+                return res.status(404).json({ error: 'Product not found' });
+            }    
+            let cart = await Cart.findOne({ user: userId });
+            if (!cart) {
+                cart = new Cart({ user: userId, items: [] });
+            }
+            const existingProductIndex = cart.items.findIndex(item => item.product.equals(product._id));
+            if (existingProductIndex !== -1) {
+                cart.items[existingProductIndex].quantity++;
+            } else {
+                cart.items.push({ product: product._id, quantity: qty });
+            }
+            await cart.save();
+            console.log(cart);
+            return res.status(200).json({ success: 'Product added to the cart' });
         } else {
-            cart.items.push({ product: product._id, quantity: 1 });
+            return res.status(401).json({ error: 'Unauthorized' });
         }
-        await cart.save();
-        console.log(cart);
-        return res.status(200).json({ success: 'Product added to the cart' });
+       
 
     } catch (error) {
         console.error('Error adding product to cart:', error);
@@ -103,9 +112,33 @@ router.post('/add-to-cart/:product/:_id', async function(req, res) {
 //     return res.status(200).json({ success: 'Cart cleared' });
 // });
 
-router.get('/my-cart/:_id', async function(req, res) {
+router.get('/my-cart/clear', async function(req, res) {
     try {
-        const userId = req.params._id; 
+       // Verify token
+       const decoded = jwt.verify(req.headers.authorization, JWT_SECRET);; 
+        console.log(decoded)
+        if (!decoded.userId) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+        // Find the documents
+        const documents = await  Cart.find({user:decoded.userId});
+        console.log('Documents found:', documents);
+
+        // Delete the documents
+        const result = await Cart.deleteMany({user:decoded.userId});
+        console.log(`${result.deletedCount} document(s) were deleted.`);
+        return res.status(200).json({ success: 'Cart cleared' });
+    }catch (error) {
+        console.error('Error fetching user cart:', error);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+    
+});
+
+router.get('/my-cart', async function(req, res) {
+    try {
+        const decoded = jwt.verify(req.headers.authorization, JWT_SECRET);
+        const userId = decoded?decoded.userId:'';
         console.log(userId)
         if (!userId) {
             return res.status(401).json({ error: 'Unauthorized' });
