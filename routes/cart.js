@@ -7,35 +7,44 @@ const jwt = require('jsonwebtoken');
 const JWT_SECRET = 'SHY23FDA45G2G1K89KH5sec4H8KUTF85ret';
 var mongoose = require('mongoose');
 
-router.post('/add-to-cart/:product/:qty', async function(req, res) {
-    try {
-        const decoded = jwt.verify(req.headers.authorization, JWT_SECRET);; 
-        console.log(decoded)
-        const userId = decoded.userId 
-        if(decoded && userId){
-            const slug = req.params.product; 
-            const qty = req.params.qty;
-            const product = await Product.findOne({ slug: slug });
-            if (!product) {
-                return res.status(404).json({ error: 'Product not found' });
-            }    
-            let cart = await Cart.findOne({ user: userId });
-            if (!cart) {
-                cart = new Cart({ user: userId, items: [] });
-            }
-            const existingProductIndex = cart.items.findIndex(item => item.product.equals(product._id));
-            if (existingProductIndex !== -1) {
-                cart.items[existingProductIndex].quantity++;
-            } else {
-                cart.items.push({ product: product._id, quantity: qty });
-            }
-            await cart.save();
-            console.log(cart);
-            return res.status(200).json({ success: 'Product added to the cart' });
-        } else {
-            return res.status(401).json({ error: 'Unauthorized' });
+function authenticateToken(req, res, next) {
+    const token = req.headers['authorization']; 
+    if (!token) {
+        return res.status(401).json({ error: 'Unauthorized: No token provided' });
+    }
+
+    jwt.verify(token, JWT_SECRET, (err, decoded) => {
+        if (err) {
+            return res.status(403).json({ error: 'Forbidden: Invalid token' });
         }
-       
+        req.userId = decoded.userId; // Set userId in the request object for later use
+        next();
+    });
+}
+
+router.post('/add-to-cart/:product/:qty', authenticateToken, async function(req, res) {
+    try {
+        const slug = decodeURIComponent(req.params.product);
+        const qty = req.params.qty
+        const product = await Product.findOne({ slug: slug });
+        if (!product) {
+            return res.status(404).json({ error: 'Product not found' });
+        }
+
+        const userId = req.userId; // Get userId from the authenticated request
+        let cart = await Cart.findOne({ user: userId });
+        if (!cart) {
+            cart = new Cart({ user: userId, items: [] });
+        }
+        const existingProductIndex = cart.items.findIndex(item => item.product.equals(product._id));
+        if (existingProductIndex !== -1) {
+            cart.items[existingProductIndex].quantity++;
+        } else {
+            cart.items.push({ product: product._id, quantity: qty });
+        }
+        await cart.save();
+        console.log(cart);
+        return res.status(200).json({ success: 'Product added to the cart' });
 
     } catch (error) {
         console.error('Error adding product to cart:', error);
@@ -135,16 +144,13 @@ router.get('/my-cart/clear', async function(req, res) {
     
 });
 
-router.get('/my-cart', async function(req, res) {
+router.get('/my-cart', authenticateToken,async function(req, res) {
     try {
-        const decoded = jwt.verify(req.headers.authorization, JWT_SECRET);
-        const userId = decoded?decoded.userId:'';
-        console.log(userId)
+       const userId = req.userId;
+         console.log(userId)
         if (!userId) {
             return res.status(401).json({ error: 'Unauthorized' });
         }
-        
-        // Find the user's cart
         const userCart = await Cart.findOne({ user: userId }).populate('items.product');
 
         if (!userCart) {
@@ -153,18 +159,16 @@ router.get('/my-cart', async function(req, res) {
 
         let total = 0;
 
-        // Iterate over each item in the cart
         for (const cartItem of userCart.items) {
-            // Find the corresponding product
             const product = await Product.findById(cartItem.product);
 
             if (product) {
-                // Calculate the total value of the item and add it to the total
                 total += cartItem.quantity * product.price;
             }
         }
+     
 
-        return res.status(200).json({ cart: userCart, total: total });
+        return res.status(200).json({ cart: userCart, total: total,count: userCart.items.length });
 
     } catch (error) {
         console.error('Error fetching user cart:', error);

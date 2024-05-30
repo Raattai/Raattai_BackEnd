@@ -71,7 +71,9 @@ router.post('/login', function(req, res, next) {
             if (err) {
                 return res.status(500).json({ error: 'Error logging in user' });
             }
-            return res.json({ message: 'Login successful', user: req.user });
+            
+            const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '12h' });
+            return res.json({ message: 'Login successful',user: req.user, token: token });
         });
     })(req, res, next);
 });
