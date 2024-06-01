@@ -121,27 +121,21 @@ router.post('/add-to-cart/:product/:qty', authenticateToken, async function(req,
 //     return res.status(200).json({ success: 'Cart cleared' });
 // });
 
-router.get('/my-cart/clear', async function(req, res) {
+router.get('/my-cart/clear', authenticateToken, async function(req, res) {
     try {
-       // Verify token
-       const decoded = jwt.verify(req.headers.authorization, JWT_SECRET);; 
-        console.log(decoded)
-        if (!decoded.userId) {
-            return res.status(401).json({ error: 'Unauthorized' });
-        }
-        // Find the documents
-        const documents = await  Cart.find({user:decoded.userId});
+        const userId = req.userId;
+
+        const documents = await Cart.find({ user: userId });
         console.log('Documents found:', documents);
 
-        // Delete the documents
-        const result = await Cart.deleteMany({user:decoded.userId});
+        const result = await Cart.deleteMany({ user: userId });
         console.log(`${result.deletedCount} document(s) were deleted.`);
+
         return res.status(200).json({ success: 'Cart cleared' });
-    }catch (error) {
-        console.error('Error fetching user cart:', error);
+    } catch (error) {
+        console.error('Error clearing user cart:', error);
         return res.status(500).json({ error: 'Internal Server Error' });
     }
-    
 });
 
 router.get('/my-cart', authenticateToken,async function(req, res) {
@@ -177,22 +171,19 @@ router.get('/my-cart', authenticateToken,async function(req, res) {
 });
 
 
-
-router.get('/txn/:_id', async function(req, res) {
+router.get('/txn', authenticateToken, async function(req, res) {
     try {
-        const txnId = req.params._id; 
-        if (!txnId) {
+        const userId = req.userId; // Get userId from the authenticated request
+        if (!userId) {
             return res.status(401).json({ error: 'Unauthorized' });
         }
-        console.log(txnId)
-        // Find the user's cart
-        const txnDetail = await Transaction.findOne({ txnId: txnId });
-        //const products = await Transaction.find(); // Find all txns
-        console.log(txnDetail)
+
+        const txnDetail = await Transaction.findOne({ user: userId });
+
         if (!txnDetail) {
             return res.status(404).json({ error: 'Txn not found for the user' });
         }
-        return res.status(200).json({ transaction: txnDetail});
+        return res.status(200).json({ transaction: txnDetail });
 
     } catch (error) {
         console.error('Error fetching Txn Details:', error);
@@ -200,11 +191,10 @@ router.get('/txn/:_id', async function(req, res) {
     }
 });
 
-
-router.get('/count/:_id', async function(req, res) {
+router.get('/count', authenticateToken, async function(req, res) {
     try {
-        const userId = req.params._id; 
-         const cartCount = await Cart.aggregate([
+        const userId = req.userId; // Get userId from the authenticated request
+        const cartCount = await Cart.aggregate([
             { $match: { user: userId } },
             { $unwind: "$items" },
             {
@@ -224,7 +214,6 @@ router.get('/count/:_id', async function(req, res) {
         return res.status(500).json({ error: 'Internal Server Error' });
     }
 });
-
 // router.post('/save-now', async function(req, res) {
 //     try {
 //         const cart = req.session.cart || [];
