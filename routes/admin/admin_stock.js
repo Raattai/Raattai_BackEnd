@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
-var Product = require('../models/product.js');
-var Stock = require('../models/stock.js');
+var Product = require('../../models/product.js');
+var Stock = require('../../models/stock.js');
 
 // Checkout
 router.get('/stock', async function(req, res) {

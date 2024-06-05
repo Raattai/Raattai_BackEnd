@@ -2,9 +2,9 @@ var express = require('express');
 var router = express.Router();
 const { check, validationResult } = require('express-validator');
 const flash = require('connect-flash');
-var auth = require('../config/auth');
+var auth = require('../../config/auth');
 var isAdmin = auth.isAdmin;
-const Category = require('../models/category'); // Import the Category model
+const Category = require('../../models/category'); // Import the Category model
 
 //Get Categories index
 router.get('/',function(req, res) {

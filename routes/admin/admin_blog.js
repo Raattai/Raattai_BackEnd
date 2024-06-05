@@ -2,11 +2,11 @@ var express = require('express');
 var router = express.Router();
 const { check, validationResult } = require('express-validator');
 const flash = require('connect-flash');
-var auth = require('../config/auth');
+var auth = require('../../config/auth');
 var isAdmin = auth.isAdmin;
 
 // Get Blog model
-var Blog = require('../models/blog.js'); // Assuming correct path and filename
+var Blog = require('../../models/blog.js'); // Assuming correct path and filename
 
 router.get('/', function(req, res) {
   Blog.find({}).sort({ sorting: 1 }).exec() // Remove the callback function from exec()

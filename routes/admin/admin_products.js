@@ -6,14 +6,14 @@ const mkdirp = require('mkdirp');
 const fs = require('fs');
 const util = require('util');
 const unlink = util.promisify(fs.unlink);
-var auth = require('../config/auth');
+var auth = require('../../config/auth');
 var isAdmin = auth.isAdmin;
 
 // Get product model
-var Product = require('../models/product.js'); 
-var Category = require('../models/category.js'); 
-const uploadGallery = require('../utils/gallery');
-var Stock = require('../models/stock.js'); 
+var Product = require('../../models/product.js'); 
+var Category = require('../../models/category.js'); 
+const uploadGallery = require('../../utils/gallery');
+var Stock = require('../../models/stock.js'); 
 
 
 router.get('/', async (req, res) => {
