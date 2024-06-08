@@ -4,7 +4,7 @@ var Curriculum = require('../../models/service/curriculum.js');
 const mailer = require('../../utils/mailer.js');
 const authenticate = require('../../utils/AuthDecode.js');
 
-router.post('/add',authenticate, async (req, res) => {
+router.post('/add', async (req, res) => {
     try {
         const curriculumData = new Curriculum({
             EducationalInstitution: req.body.EducationalInstitution,
@@ -13,7 +13,6 @@ router.post('/add',authenticate, async (req, res) => {
             Email: req.body.Email,
             ContactNumber: req.body.ContactNumber,
             InstitutionAddress: req.body.InstitutionAddress,
-            user: req.userId
         });
 
         const savedCurriculum = await curriculumData.save();

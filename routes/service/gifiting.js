@@ -3,7 +3,7 @@ var router = express.Router();
 var Gifting = require('../../models/service/gifting.js');
 const authenticate = require('../../utils/AuthDecode.js');
 
-router.post('/gifting',authenticate, async (req, res) => {
+router.post('/gifting', async (req, res) => {
     try {
         const giftingData = new Gifting({
             NoOfGifts: req.body.NoOfGifts,
@@ -12,7 +12,7 @@ router.post('/gifting',authenticate, async (req, res) => {
             Email: req.body.Email,
             ContactNumber: req.body.ContactNumber,
             Address: req.body.Address,
-            user: req.userId
+          
         });
 
         const savedGifting = await giftingData.save();

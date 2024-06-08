@@ -20,7 +20,7 @@ const availableWorkshopData = [
     }
 ];
 
-router.post('/workshop', authenticate, async (req, res) => {
+router.post('/workshop', async (req, res) => {
     try {
         console.log('Request Body:', req.body);
 
@@ -49,7 +49,7 @@ router.post('/workshop', authenticate, async (req, res) => {
             Email: req.body.Email,
             ContactNumber: req.body.ContactNumber,
             Address: req.body.Address,
-            user: req.userId
+            
         });
 
         const savedWorkshop = await workshopData.save();
