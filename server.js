@@ -103,13 +103,17 @@ const products = require('./routes/product');
 const cart = require('./routes/cart');
 const users = require('./routes/user');
 const pages = require('./routes/pages');
-const adminProducts = require('./routes/admin_products.js');
-const adminBlog = require('./routes/admin_blog.js');
-const adminCategories = require('./routes/admin_category.js');
-const adminService = require('./routes/admin_service.js');
+const adminProducts = require('./routes/admin/admin_products.js');
+const adminBlog = require('./routes/admin/admin_blog.js');
+const adminCategories = require('./routes/admin/admin_category.js');
+const adminService = require('./routes/admin/admin_service.js');
 const feedback = require('./routes/user_feedback.js');
-const stock = require('./routes/admin_stock.js');
+const stock = require('./routes//admin/admin_stock.js');
 const orders = require('./routes/order.js');
+const curriculum = require('./routes/service/curriculum.js');
+const gifiting = require('./routes/service/gifiting.js');
+const workshop = require('./routes/service/workshop.js');
+
 
 
 app.use('/admin/products', adminProducts);
@@ -122,6 +126,9 @@ app.use('/user/cart', cart);
 app.use('/user', users);
 app.use('/feedback', feedback);
 app.use('/orders', orders)
+app.use('/curriculum', curriculum)
+app.use('/gifting', gifiting)
+app.use('/workshop', workshop)
 app.use('/',pages);
 
 app.use('/ccavRequestHandler', (req,res)=>{

@@ -21,7 +21,6 @@ router.get('/',function(req, res) {
 });
 
 //Get add Category
-
 router.get('/add-category', function(req, res) {
   var title = "";
   var slug = "";

@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var Gifting = require('../../models/service/gifting.js');
-const authenticate = require('../utils/AuthDecode.js');
+const authenticate = require('../../utils/AuthDecode.js');
 
 router.post('/gifting',authenticate, async (req, res) => {
     try {
@@ -16,7 +16,7 @@ router.post('/gifting',authenticate, async (req, res) => {
         });
 
         const savedGifting = await giftingData.save();
-        res.status(201).send(savedGifting);
+        res.status(201).send({data : savedGifting, message : "success"});
     } catch (error) {
         res.status(400).send(error.message);
     }

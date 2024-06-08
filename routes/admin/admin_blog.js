@@ -5,7 +5,6 @@ const flash = require('connect-flash');
 var auth = require('../../config/auth');
 var isAdmin = auth.isAdmin;
 
-// Get Blog model
 var Blog = require('../../models/blog.js'); // Assuming correct path and filename
 
 router.get('/', function(req, res) {
@@ -39,7 +38,6 @@ router.post('/add-blog', [
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
-    // If there are validation errors, render the form again with error messages
     res.render('admin/add_Blog', {
       errors: errors.array(),
       Blogtitle: req.body.Blogtitle,

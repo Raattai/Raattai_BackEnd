@@ -132,7 +132,7 @@ router.post('/forgot-password', async (req, res) => {
 
         const OTP = generateOTP();
         // Generate OTP and send it to the user's email
-        // await mailer(email, 'Password Reset OTP', `Your OTP for password reset is: ${OTP}`, `Your OTP for password reset is: <b>${OTP}</b>`);
+         await mailer(email, 'Password Reset OTP', `Your OTP for password reset is: ${OTP}`, `Your OTP for password reset is: <b>${OTP}</b>`);
         console.log()
         // Generate JWT token with email and OTP
         const token = jwt.sign({ email, OTP }, JWT_SECRET, { expiresIn: '15m' });
@@ -173,15 +173,8 @@ router.post('/reset-password', async (req, res) => {
         user.password = hash;
         await user.save();
 
-        // Destroy the session after password reset
-        req.logout();
-        req.session.destroy(function(err) {
-            if (err) {
-                console.error('Error destroying session:', err);
-                return res.status(500).json({ error: 'Internal Server Error' });
-            }
+        
             res.json({ message: 'Password reset successfully. Please log in again.' });
-        });
     } catch (error) {
         console.error(error);
         if (error.name === 'TokenExpiredError' || error.name === 'JsonWebTokenError') {

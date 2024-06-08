@@ -1,10 +1,10 @@
 var express = require('express');
 var router = express.Router();
 var Curriculum = require('../../models/service/curriculum.js');
-const mailer = require('../utils/mailer.js');
-const authenticate = require('../utils/AuthDecode.js');
+const mailer = require('../../utils/mailer.js');
+const authenticate = require('../../utils/AuthDecode.js');
 
-router.post('/curriculum',authenticate, async (req, res) => {
+router.post('/add',authenticate, async (req, res) => {
     try {
         const curriculumData = new Curriculum({
             EducationalInstitution: req.body.EducationalInstitution,
@@ -17,8 +17,9 @@ router.post('/curriculum',authenticate, async (req, res) => {
         });
 
         const savedCurriculum = await curriculumData.save();
-        res.status(201).send(savedCurriculum);
+        res.status(201).send({data:savedCurriculum , message: "success"});
     } catch (error) {
+        console.log(error)
         res.status(400).send(error.message);
     }
 });
