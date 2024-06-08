@@ -110,6 +110,7 @@ const adminService = require('./routes/admin/admin_service.js');
 const feedback = require('./routes/user_feedback.js');
 const stock = require('./routes//admin/admin_stock.js');
 const orders = require('./routes/order.js');
+const contact = require('./routes/contact.js');
 const curriculum = require('./routes/service/curriculum.js');
 const gifiting = require('./routes/service/gifiting.js');
 const workshop = require('./routes/service/workshop.js');
@@ -126,6 +127,7 @@ app.use('/user/cart', cart);
 app.use('/user', users);
 app.use('/feedback', feedback);
 app.use('/orders', orders)
+app.use('/contact', contact)
 app.use('/curriculum', curriculum)
 app.use('/gifting', gifiting)
 app.use('/workshop', workshop)
