@@ -149,37 +149,31 @@ router.get('/get-user',(req,res)=>{
 })
 
 // Route to reset password
-router.post('/reset-password', authenticate, async (req, res) => {
+router.post('/reset-password', async (req, res) => {
     try {
-        const { OTP, newPassword } = req.body;
-
-        const token = req.headers['authorization'].split(' ')[1];
+        const { token, OTP, newPassword } = req.body;
         const decoded = jwt.verify(token, JWT_SECRET);
         if (decoded.OTP !== parseInt(OTP)) {
             return res.status(400).json({ error: 'Invalid OTP' });
         }
-
         const user = await User.findOne({ email: decoded.email });
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }
-
         const salt = await bcrypt.genSalt(10);
         const hash = await bcrypt.hash(newPassword, salt);
         user.password = hash;
         await user.save();
-
-        res.json({ message: 'Password reset successfully. Please log in again.' });
+        return res.json({ message: 'Password reset successfully. Please log in again.' });
     } catch (error) {
         console.error(error);
         if (error.name === 'TokenExpiredError' || error.name === 'JsonWebTokenError') {
             return res.status(401).json({ error: 'Invalid or expired token' });
         } else {
-            res.status(500).json({ error: 'Internal Server Error' });
+            return res.status(500).json({ error: 'Internal Server Error' });
         }
     }
 });
-
 
 
 // // Route to initiate password reset
