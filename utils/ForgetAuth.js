@@ -7,12 +7,10 @@ function authenticateToken(req, res, next) {
         return res.status(401).json({ error: 'Unauthorized: No token provided' });
     }
 
-    const token = authHeader.split(' ')[1];
-    jwt.verify(token, JWT_SECRET, (err, decoded) => {
+    jwt.verify(authHeader, JWT_SECRET, (err, decoded) => {
         if (err) {
             return res.status(403).json({ error: 'Forbidden: Invalid token' });
         }
-        req.userId = decoded.userId;
         req.email = decoded.email;
         req.OTP = decoded.OTP;
         next();
