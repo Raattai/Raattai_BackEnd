@@ -29,12 +29,12 @@ router.post('/register', async function(req, res) {
         const { name, email, username, password, phoneNumber,confirm_password } = req.body;
 
         if (password !== confirm_password) {
-            return res.status(400).json({ error: 'Passwords do not match' });
+            return res.status(200).json({ error: 'Passwords do not match' });
         }
 
         const existingUser = await User.findOne({ username: username });
         if (existingUser) {
-            return res.status(400).json({ error: 'Username already exists, choose another' });
+            return res.status(200).json({ error: 'Username already exists, choose another' });
         }
         const salt = await bcrypt.genSalt(10);
         const hash = await bcrypt.hash(password, salt);
@@ -239,5 +239,7 @@ router.post('/reset-password', authenticate, async (req, res) => {
         }
     }
 });
+
+//change password
 
 module.exports = router;

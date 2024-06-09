@@ -3,6 +3,7 @@ var router = express.Router();
 const fs=require('fs');
 var Product = require('../models/product.js');
 var Blog = require('../models/blog.js');
+const authenticate = require('../utils/AuthDecode.js');
 
 // Route to fetch all products
 router.get('/products', async (req, res) => {
@@ -19,6 +20,11 @@ router.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '/web/index.html')); 
 });
 
+router.get('check-token',(req,res)=>{
+
+})
+
+
   // Route to fetch all blogs
   router.get('/blogs', async (req, res) => {
     try {
@@ -29,6 +35,7 @@ router.get('/', (req, res) => {
     }
   });
   
+//token verify
 
 
 module.exports=router;

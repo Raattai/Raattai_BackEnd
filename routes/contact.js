@@ -18,7 +18,6 @@ router.post('/contact', async (req, res) => {
         const savedContact = await contactData.save();
         const sub = `New Contact Request from ${req.body.firstname} ${req.body.lastname}: ${req.body.subject}`;
         await mailer('raataitech@gmail.com', 'Query', sub);
-
         res.status(201).send({ message: "you will receive email" });
     } catch (error) {
         res.status(400).send(error.message);
