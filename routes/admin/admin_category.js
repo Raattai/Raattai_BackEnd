@@ -2,7 +2,7 @@ var express = require('express');
 var router = express.Router();
 const flash = require('connect-flash');
 var auth = require('../../config/auth');
-const Category = require('../../models/category'); 
+const Category = require('../../models/category');
 
 // Get Categories index
 router.get('/', function(req, res) {
@@ -26,7 +26,7 @@ router.post('/add-category', function(req, res) {
       } else {
         var newCategory = new Category({
           name: req.body.title,
-          slug: slug 
+          slug: slug
         });
 
         newCategory.save()
@@ -59,15 +59,7 @@ router.post('/edit-category/:id', function(req, res) {
       return category.save();
     })
     .then(updatedCategory => {
-      Category.find({}).exec()
-        .then(categories => {
-          res.app.locals.categories = categories;
-          res.json({ message: 'Category edited', updatedCategory });
-        })
-        .catch(err => {
-          console.error(err);
-          res.status(500).json({ message: 'Internal Server Error' });
-        });
+      res.json({ message: 'Category edited', updatedCategory });
     })
     .catch(err => {
       console.error(err);
@@ -81,15 +73,7 @@ router.delete('/delete-category/:id', function(req, res) {
     .exec()
     .then(deletedCategory => {
       if (deletedCategory) {
-        Category.find({}).exec()
-          .then(categories => {
-            res.app.locals.categories = categories;
-            res.json({ message: 'Category deleted' });
-          })
-          .catch(err => {
-            console.error(err);
-            res.status(500).json({ message: 'Internal Server Error' });
-          });
+        res.json({ message: 'Category deleted' });
       } else {
         res.status(404).json({ message: 'Category not found' });
       }
