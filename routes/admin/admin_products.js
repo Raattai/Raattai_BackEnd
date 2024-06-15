@@ -27,16 +27,6 @@ router.get('/', async (req, res) => {
     }
 });
 
-router.get('/add-product', async (req, res) => {
-    try {
-        const categories = await Category.find().exec();
-        res.json({ categories });
-    } catch (error) {
-        console.error('Error fetching categories:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-});
-
 // Set storage engine
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {  
@@ -107,28 +97,27 @@ router.post('/add-product', upload.single('image'), async (req, res) => {
     await mkdirp('web/assets/img/' + productId + '/gallery/thumbs', { recursive: true });
 
     // Move uploaded image to the appropriate directory
-    // if (image !== "") {
-    //   const imagePath = 'web/assets/img/' + productId + '/' + image;
+    if (image !== "") {
+      const imagePath = 'web/assets/img/' + productId + '/' + image;
 
-    //   // Move the image file
-    //   if (fs.existsSync(req.file.path)) {
-    //     fs.rename(req.file.path, imagePath, err => {
-    //       if (err) {
-    //         console.error('Error moving image:', err);
-    //         return res.status(500).json({ error: 'Error moving image' });
-    //       } else {
-    //         console.log('Image moved successfully:', req.file.path, '->', imagePath);
-    //         return res.status(201).json({ message: 'Product added successfully' });
-    //       }
-    //     });
-    //   } else {
-    //     console.error('Source file does not exist:', req.file.path);
-    //     return res.status(500).json({ error: 'Source file does not exist' });
-    //   }
-    // } else {
-    //   return res.status(201).json({ message: 'Product added successfully' });
-    // }
-    return res.status(201).json({ message: 'Product added successfully' });
+      // Move the image file
+      if (fs.existsSync(req.file.path)) {
+        fs.rename(req.file.path, imagePath, err => {
+          if (err) {
+            console.error('Error moving image:', err);
+            return res.status(500).json({ error: 'Error moving image' });
+          } else {
+            console.log('Image moved successfully:', req.file.path, '->', imagePath);
+            return res.status(201).json({ message: 'Product added successfully' });
+          }
+        });
+      } else {
+        console.error('Source file does not exist:', req.file.path);
+        return res.status(500).json({ error: 'Source file does not exist' });
+      }
+    } else {
+      return res.status(201).json({ message: 'Product added successfully' });
+    }
   } catch (error) {
     console.error('Error adding product:', error);
     return res.status(500).json({ error: 'Internal Server Error' });
@@ -183,11 +172,7 @@ router.post('/edit-product/:id', upload.single('image'), async (req, res) => {
   try {
     const productId = req.params.id;
     const { title, desc, price, category } = req.body;
-
-    // Find the product by its _id
     const product = await Product.findById(productId);
-
-    // Check if the product exists
     if (!product) {
       return res.status(404).json({ error: 'Product not found' });
     }
@@ -224,29 +209,21 @@ router.post('/edit-product/:id', upload.single('image'), async (req, res) => {
 router.post('/edit-product/:id/gallery', uploadGallery.array('gallery', 5), async (req, res) => {
   try {
     const productId = req.params.id;
-    const images = req.files; // Array of uploaded files
-
-    // Find the product by its ID
+    const images = req.files;
     const product = await Product.findById(productId);
 
     if (!product) {
       return res.status(404).json({ error: 'Product not found' });
     }
-
-    // Check if there are uploaded images
     if (!images || images.length === 0) {
       return res.status(400).json({ error: 'No image uploaded' });
     }
-
-    // Save the filenames to the database
     images.forEach(async (image) => {
       const newGalleryImage = {
         filename: `/assets/img/${productId}/gallery/` + image.filename
       };
       product.galleryImages.push(newGalleryImage);
     });
-
-    // Save the updated product with gallery images
     await product.save();
 
     return res.status(200).json({ message: 'Gallery images uploaded successfully' });
