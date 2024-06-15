@@ -29,7 +29,8 @@ router.get('/', async (req, res) => {
 
 // Set storage engine
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
+  destination: function (req, file, cb) {  
+   
     cb(null, 'web/assets/img');
   },
   filename: function (req, file, cb) {
@@ -44,6 +45,7 @@ const upload = multer({
     checkFileType(file, cb);
   }
 });
+
 
 function checkFileType(file, cb) {
   const filetypes = /jpeg|jpg|png/;
@@ -60,7 +62,9 @@ function checkFileType(file, cb) {
 router.post('/add-product', upload.single('image'), async (req, res) => {
   try {
     const { title, desc, price, category } = req.body;
+    
     const image = req.file ? '/assets/img/' + req.file.filename : '';
+  
 
     // Check if any required field is missing
     if (!title || !desc || !price || !category || !image) {
@@ -88,10 +92,15 @@ router.post('/add-product', upload.single('image'), async (req, res) => {
 
     // Create directories for product images
     const productId = newProduct._id;
+    console.log('productid',productId);
     await mkdirp('web/assets/img/' + productId + '/gallery', { recursive: true });
     await mkdirp('web/assets/img/' + productId + '/gallery/thumbs', { recursive: true });
+
+    // Move uploaded image to the appropriate directory
     if (image !== "") {
       const imagePath = 'web/assets/img/' + productId + '/' + image;
+
+      // Move the image file
       if (fs.existsSync(req.file.path)) {
         fs.rename(req.file.path, imagePath, err => {
           if (err) {
