@@ -10,11 +10,9 @@ const cors = require('cors');
 const expressMessages = require('express-messages');
 const Category = require('./models/category');
 const Stock = require('./models/stock');
-
 const ccav = require('./utils/ccavutil.js');
 const ccavReqHandler = require('./utils/ccavRequestHandler.js');
 const ccavResHandler = require('./utils/ccavResponseHandler.js');
-    
     
 
 mongoose.connect(config.database, { useNewUrlParser: true, useUnifiedTopology: true });
