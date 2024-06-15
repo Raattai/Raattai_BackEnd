@@ -4,8 +4,8 @@ const nodemailer = require('nodemailer');
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: 'shyamsaran0206@gmail.com',
-        pass: '',
+        user: 'raataitech@gmail.com',
+        pass: 'eayf paxv nmar yjql',
     }
 });
 
@@ -13,7 +13,7 @@ const transporter = nodemailer.createTransport({
 async function sendEmail(to, subject, text, html) {
     // Setup email data
     const mailOptions = {
-        from: 'shyamsaran0206@gmail.com',
+        from: 'raataitech@gmail.com',
         to: to, // Recipient's email address
         subject: subject, // Subject line
         text: text, // Plain text body
@@ -32,3 +32,4 @@ async function sendEmail(to, subject, text, html) {
 }
 
 module.exports = sendEmail;
+

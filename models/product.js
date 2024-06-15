@@ -35,4 +35,4 @@ var productSchema = mongoose.Schema({
     galleryImages: [GalleryImageSchema]
 });
 
-var Product = module.exports = mongoose.model('product', productSchema);
+var Product = module.exports = mongoose.model('Product', productSchema);

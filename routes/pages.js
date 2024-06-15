@@ -1,13 +1,9 @@
 var express =require('express');
 var router = express.Router();
 const fs=require('fs');
-var auth = require('../config/auth.js');
-var isUser = auth.isUser;
-
 var Product = require('../models/product.js');
 var Blog = require('../models/blog.js');
-const Service = require('../models/service');
-
+const authenticate = require('../utils/AuthDecode.js');
 
 // Route to fetch all products
 router.get('/products', async (req, res) => {
@@ -19,13 +15,15 @@ router.get('/products', async (req, res) => {
     }
   });
 
-  router.get('/', async (req, res) => {
-    try {
-      res.send('<h1 style=\'text-align:center;\'>This landing page</h1>');
-    } catch (error) {
-      res.status(500).json({ message: error.message });
-    }
-  });
+//renders the raattai front end
+router.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, '/web/index.html')); 
+});
+
+router.get('check-token',(req,res)=>{
+
+})
+
 
   // Route to fetch all blogs
   router.get('/blogs', async (req, res) => {
@@ -37,19 +35,7 @@ router.get('/products', async (req, res) => {
     }
   });
   
-  //Route to fetch Particular service 
-  router.get('/services/:id', async (req, res) => {
-    try {
-      const service = await Service.findById(req.params.id);
-      if (!service) {
-        return res.status(404).json({ message: 'Service not found' });
-      }
-      res.json(service);
-    } catch (error) {
-      res.status(500).json({ message: error.message });
-    }
-  });
-  
+//token verify
 
 
 module.exports=router;

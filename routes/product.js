@@ -27,25 +27,17 @@ router.get('/products', async function(req, res) {
 // Product details route
 router.get('/products/:product', async function(req, res) {
     try {
-        var galleryImages = null;
         const product = await Product.findOne({ slug: req.params.product }).exec();
         const loggedIn = (req.isAuthenticated()) ? true :false
         if (!product) {
             return res.status(404).send('Product not found');
         }
 
-        const galleryDir = `public/product_images/${product._id}/gallery/`;
-        const files = await fs.promises.readdir(galleryDir);
-        galleryImages = files;
-
         res.render('product', {
             title: product.title,
             p: product,
-            galleryImages: galleryImages,
-            loggedIn: loggedIn,
-            user: req.user,
             page: {
-                slug: 'gallery' // Set the page slug to 'gallery' or whatever is appropriate
+                slug: 'gallery' 
             }
         });
     } catch (error) {

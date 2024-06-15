@@ -1,205 +1,325 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const bcrypt = require('bcryptjs');
-const passport = require('passport');
-const User = require('../models/user.js');
-const mailer = require('../utils/mailer.js')
-// Route to register page
-router.get('/register', async function(req, res) {
-    try {
-        res.render('register', {
-            title: 'Register',
-            page: { slug: 'register' }
-        });
-    } catch (error) {
-        console.error('Error rendering registration page:', error);
-        res.status(500).send('Internal Server Error');
-    }
-});
+const bcrypt = require("bcryptjs");
+const passport = require("passport");
+const User = require("../models/user.js");
+const DeliveryAddress = require("../models/deliveryAddress.js");
+const mailer = require("../utils/mailer.js");
+const jwt = require("jsonwebtoken");
+const session = require("express-session");
+const LocalStrategy = require("passport-local").Strategy;
+const authenticate = require("../utils/ForgetAuth.js");
+const JWT_SECRET = "SHY23FDA45G2G1K89KH5sec4H8KUTF85ret";
 
-// Route to handle user registration
-router.post('/register', async function(req, res) {
-    try {
-        const { name, email, username, password, confirm_password } = req.body;
+router.use(
+  session({
+    secret: "keyboard cat",
+    resave: true,
+    saveUninitialized: true,
+    cookie: {
+      maxAge: 3600000,
+    },
+  })
+);
+
+function generateOTP() {
+  return Math.floor(100000 + Math.random() * 900000);
+}
+
+router.post("/register", async function (req, res) {
+  try {
+    const { name, email, username, password, phoneNumber, confirm_password } =
+      req.body;
 
         if (password !== confirm_password) {
-            req.flash('error', 'Passwords do not match');
-            return res.redirect('/user/register');
+            return res.status(400).json({ error: 'Passwords do not match' });
         }
 
         const existingUser = await User.findOne({ username: username });
         if (existingUser) {
-            req.flash('error', 'Username already exists, choose another');
-            return res.redirect('/user/register');
+            return res.status(400).json({ error: 'Username already exists, choose another' });
         }
         const salt = await bcrypt.genSalt(10);
         const hash = await bcrypt.hash(password, salt);
 
-        const newUser = new User({
-            name: name,
-            email: email,
-            username: username,
-            password: hash,
-            admin: 0
-        });
-        await newUser.save();
+    const newUser = new User({
+      name: name,
+      email: email,
+      username: username,
+      password: hash,
+      phoneNumber: phoneNumber,
+      admin: 0,
+    });
+    await newUser.save();
 
-        // Flash message for successful registration
-        req.flash('success', 'You are now registered');
-        res.redirect('/user/login');
-    } catch (error) {
-        console.error('Error registering user:', error);
-        req.flash('error', 'Internal Server Error');
-        res.redirect('/user/register');
-    }
+    await mailer(
+      email,
+      "reg",
+      "Welcome to Raattai and happy purchasing. Please confirm your registration by login to http://3.6.184.48:3000/login"
+    );
+
+    res.json({ success: "You will receive an email notification." });
+  } catch (error) {
+    console.error("Error registering user:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
+router.post("/login", function (req, res, next) {
+  passport.authenticate("local", function (err, user, info) {
+    if (err) {
+      return res.status(500).json({ error: "Error authenticating user" });
+    }
+    if (!user) {
+      return res.status(400).json({ error: "Invalid username or password" });
+    }
+    req.logIn(user, function (err) {
+      if (err) {
+        return res.status(500).json({ error: "Error logging in user" });
+      }
 
-// Route to login page
-router.get('/login', async function(req, res) {
-    try {
-        if (req.user) {
-            // If user is already logged in, redirect to home page
-            return res.redirect('/');
+      const token = jwt.sign({ userId: user.id }, JWT_SECRET, {
+        expiresIn: "1h",
+      });
+      return res.json({
+        message: "Login successful",
+        user: req.user,
+        token: token,
+      });
+    });
+  })(req, res, next);
+});
+
+router.get("/logout", async function (req, res) {
+  try {
+    const decoded = jwt.verify(req.headers.authorization, JWT_SECRET);
+    console.log(decoded);
+    const userId = decoded.userId;
+    if (!userId) {
+      return res.status(401).json({ error: "You are not logged in" });
+    }
+
+    req.logout(function (err) {
+      if (err) {
+        console.error("Error logging out:", err);
+        return res.status(500).json({ error: "Internal Server Error" });
+      }
+
+      req.session.destroy(function (err) {
+        if (err) {
+          console.error("Error destroying session:", err);
+          return res.status(500).json({ error: "Internal Server Error" });
         }
-        // Render login page
-        res.render('login', {
-            title: 'Log In',
-            page: {
-                slug: 'login' // Set the page slug to 'login' or whatever is appropriate
-            }
-        });
-    } catch (error) {
-        console.error('Error rendering login page:', error);
-        res.status(500).send('Internal Server Error');
+        res.json({ message: "You are logged out!" });
+      });
+    });
+  } catch (error) {
+    console.log(typeof error);
+    console.log(error.name);
+    if (error.name === "TokenExpiredError") {
+      res.status(200).json({ message: "Token Expired" });
+    } else {
+      console.error("Error rendering login page:", error);
+      res.status(500).json({ error: error });
     }
-});
-router.post('/login', function(req, res, next) {
-    passport.authenticate('local', async function(err, user, info) {
-        try {
-            if (err) {
-                console.error('Error authenticating user:', err);
-                return next(err);
-            }
-            if (!user) {
-                // If user is not found, redirect to login page with error message
-                req.flash('error', 'Invalid username or password');
-                return res.redirect('/user/login');
-            }
-            req.logIn(user, function(err) {
-                if (err) {
-                    console.error('Error logging in user:', err);
-                    return next(err);
-                }
-                // If login is successful, redirect to home page
-                return res.redirect('/');
-            });
-        } catch (error) {
-            console.error('Error authenticating user:', error);
-            res.status(500).send('Internal Server Error');
-        }
-    })(req, res, next);
+  }
 });
 
+// // Route to initiate password reset
+// router.post('/forgot-password', async (req, res) => {
+//     try {
+//         const { email } = req.body;
+//         const user = await User.findOne({ email: email });
+//         if (!user) {
+//             return res.status(404).json({ error: 'User not found' });
+//         }
+//         const OTP = generateOTP();
+//         await mailer(email, 'Password Reset OTP', `Your OTP for password reset is: ${OTP}`, `Your OTP for password reset is: <b>${OTP}</b>`);
+//         const token = jwt.sign({ email, OTP }, JWT_SECRET, { expiresIn: '15m' });
+//         res.json({ token });
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).json({ error: 'Error sending email' });
+//     }
+// });
 
-
-router.get('/logout', async function(req, res) {
-    try {
-       req.logout(function(err) {
-           if (err) {
-               console.error('Error logging out:', err);
-               return res.status(500).send('Internal Server Error');
-           }
-           req.flash('success', 'You are logged out!');
-           res.redirect('/user/login');
-       });
-    } catch (error) {
-        console.error('Error rendering login page:', error);
-        res.status(500).send('Internal Server Error');
-    }
+router.get("/get-user", (req, res) => {
+  const user = req.user;
+  res.json({ user });
 });
 
-////forgot password 
-
-const jwt = require('jsonwebtoken');
-
-// Secret key for JWT token
-const JWT_SECRET = 'your_jwt_secret';
-
-// Generate OTP
-function generateOTP() {
-    return Math.floor(100000 + Math.random() * 900000);
-}
+// // Route to reset password
+// router.post('/reset-password', async (req, res) => {
+//     try {
+//         const { token, OTP, newPassword } = req.body;
+//         const decoded = jwt.verify(token, JWT_SECRET);
+//         if (decoded.OTP !== parseInt(OTP)) {
+//             return res.status(400).json({ error: 'Invalid OTP' });
+//         }
+//         const user = await User.findOne({ email: decoded.email });
+//         if (!user) {
+//             return res.status(404).json({ error: 'User not found' });
+//         }
+//         const salt = await bcrypt.genSalt(10);
+//         const hash = await bcrypt.hash(newPassword, salt);
+//         user.password = hash;
+//         await user.save();
+//         return res.json({ message: 'Password reset successfully. Please log in again.' });
+//     } catch (error) {
+//         console.error(error);
+//         if (error.name === 'TokenExpiredError' || error.name === 'JsonWebTokenError') {
+//             return res.status(401).json({ error: 'Invalid or expired token' });
+//         } else {
+//             return res.status(500).json({ error: 'Internal Server Error' });
+//         }
+//     }
+// });
 
 // Route to initiate password reset
-router.post('/forgot-password', async (req, res) => {
-    try {
-        const { email } = req.body;
+router.post("/forgot-password", async (req, res) => {
+  try {
+    const { email } = req.body;
 
-        // Find user by email
-        const user = await User.findOne({ email: email });
-        if (!user) {
-            return res.status(404).send('User not found');
-        }
-
-        // Generate OTP
-        const OTP = generateOTP();
-
-        // Send OTP via email
-        await mailer(email, 'Password Reset OTP', `Your OTP for password reset is: ${OTP}`, `Your OTP for password reset is: <b>${OTP}</b>`);
-        console.log(OTP)
-        // Generate JWT token with email and OTP payload
-        const token = jwt.sign({ email, OTP }, JWT_SECRET, { expiresIn: '15m' });
-        res.redirect(`reset-password/${token}`);
-    } catch (error) {
-        console.error(error);
-        res.status(500).send('Error sending email');
+    // Find user by email
+    const user = await User.findOne({ email: email });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
     }
+
+    const OTP = generateOTP();
+    // Generate OTP and send it to the user's email
+    await mailer(
+      email,
+      "Password Reset OTP",
+      `Your OTP for password reset is: ${OTP}`,
+      `Your OTP for password reset is: <b>${OTP}</b>`
+    );
+
+    // Generate JWT token with email and OTP
+    const token = jwt.sign({ email, OTP }, JWT_SECRET, { expiresIn: "15m" });
+    res.json({ token });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error sending email" });
+  }
 });
 
-// Route to verify OTP and reset password
-router.post('/reset-password', async (req, res) => {
-    try {
-        const { token, OTP, newPassword } = req.body;
+router.get("/get-user", (req, res) => {
+  const user = req.user;
+  res.json({ user });
+});
 
-        // Verify token
-        const decoded = jwt.verify(token, JWT_SECRET);
+router.post("/verify-otp", authenticate, async (req, res) => {
+  try {
+    const { OTP } = req.body;
 
-        // Check if OTP matches
-        if (decoded.OTP !== OTP) {
-            return res.status(400).send('Invalid OTP');
-        }
-
-        // Find user by email
-        const user = await User.findOne({ email: decoded.email });
-        if (!user) {
-            return res.status(404).send('User not found');
-        }
-
-        // Update user's password (mocked for this example)
-        user.password = newPassword;
-        await user.save();
-
-        // Password successfully reset
-        res.send('Password reset successfully');
-    } catch (error) {
-        console.error(error);
-        if (error.name === 'TokenExpiredError' || error.name === 'JsonWebTokenError') {
-            return res.status(401).send('Invalid or expired token');
-        } else {
-            res.status(500).send('Internal Server Error');
-        }
+    if (req.OTP !== parseInt(OTP)) {
+      return res.status(400).json({ error: "Invalid OTP" });
     }
+
+    const user = await User.findOne({ email: req.email });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.json({ message: "OTP verified. You can now reset your password." });
+  } catch (error) {
+    console.error(error);
+    if (
+      error.name === "TokenExpiredError" ||
+      error.name === "JsonWebTokenError"
+    ) {
+      return res.status(401).json({ error: "Invalid or expired token" });
+    } else {
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  }
+});
+router.get("/deliveryAddressList", async function (req, res) {
+  try {
+    const decoded = jwt.verify(req.headers.authorization, JWT_SECRET);
+
+    const userId = decoded.userId;
+    if (!userId) {
+      return res.status(401).json({ error: "You are not logged in" });
+    }
+    const addresslist = await DeliveryAddress.find();
+    console.log(addresslist);
+    if (!addresslist) {
+      return res.status(200).json({ message: "No Records founds" });
+    }
+    return res.status(200).json({ list: addresslist });
+  } catch (error) {
+    console.error("Error fetching Txn Details:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+router.post("/addAddress", async (req, res) => {
+  try {
+    const {
+      title,
+      addressLine1,
+      addressLine2,
+      city,
+      state,
+      country,
+      postalcode,
+    } = req.body;
+
+    // Create a new product instance
+    const newDAdd = new DeliveryAddress({
+      title: title,
+      addressLine1: addressLine1,
+      addressLine2: addressLine2,
+      city: city,
+      state: state,
+      country: country,
+      postalcode: postalcode,
+    });
+
+    // Save the product to the database
+    await newDAdd.save();
+    res.json({ message: "Delivery Address added successfuly" });
+  } catch (error) {
+    console.error(error);
+    if (
+      error.name === "TokenExpiredError" ||
+      error.name === "JsonWebTokenError"
+    ) {
+      return res.status(401).json({ error: "Invalid or expired token" });
+    } else {
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  }
 });
 
-router.get('/forgot-password', (req, res) => {
-    res.render('forgot_password'); // Render the forgot password form
+// Route to reset password
+router.post("/reset-password", authenticate, async (req, res) => {
+  try {
+    const { newPassword } = req.body;
+    const user = await User.findOne({ email: req.email });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hash = await bcrypt.hash(newPassword, salt);
+    user.password = hash;
+    await user.save();
+    res.json({ message: "Password reset successfully. Please log in again." });
+  } catch (error) {
+    console.error(error);
+    if (
+      error.name === "TokenExpiredError" ||
+      error.name === "JsonWebTokenError"
+    ) {
+      return res.status(401).json({ error: "Invalid or expired token" });
+    } else {
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  }
 });
 
-// Route to render reset password form
-router.get('/reset-password/:token', (req, res) => {
-    const token = req.params.token;
-    res.render('reset_password', { token }); // Render the reset password form and pass the token
-});
+//change password
 
 module.exports = router;
